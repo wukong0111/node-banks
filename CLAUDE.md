@@ -11,6 +11,7 @@ curl -s "http://localhost:3000/health" | jq       # Test health endpoint
 curl -s "http://localhost:3000/api/banks?limit=2" | jq  # Test banks endpoint
 
 # Code Quality
+npx biome lint                                     # Check for linting warnings (MUST be 0)
 npx biome lint --write                             # Auto-fix linting issues
 npx tsc --noEmit                                  # Check TypeScript errors
 ```
@@ -50,6 +51,10 @@ npx tsc --noEmit                                  # Check TypeScript errors
 - **Controllers should be < 20 lines (extract params → call use case → map response)**
 - **One use case = one file**
 - **Import types with `import type` when possible**
+- **MANDATORY: All Biome linting warnings must be fixed before any commit**
+  - Run `npx biome lint` - must show 0 warnings
+  - Use `npx biome lint --write` for auto-fixes first
+  - No code is acceptable with linting warnings
 
 ## Current Status & Limitations
 
