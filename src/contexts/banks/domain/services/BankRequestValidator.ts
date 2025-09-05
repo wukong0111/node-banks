@@ -1,6 +1,6 @@
 import type { Environment, BankFilters } from '../Bank.js';
 import type { GetBanksRequest } from '../../application/dto/GetBanksRequest.js';
-import { Result, ResultBuilder } from '../Result.js';
+import { type Result, ResultBuilder } from '../Result.js';
 
 export class BankRequestValidator {
   private static readonly VALID_ENVIRONMENTS = ['production', 'test', 'sandbox', 'development', 'all'] as const;
@@ -9,20 +9,20 @@ export class BankRequestValidator {
     const errors: string[] = [];
     
     // Validate environment parameter
-    let env: Environment | 'all' | undefined = undefined;
+    let env: Environment | 'all' | undefined ;
     if (request.env !== undefined) {
-      if (!this.VALID_ENVIRONMENTS.includes(request.env as any)) {
-        errors.push(`Invalid environment parameter. Must be one of: ${this.VALID_ENVIRONMENTS.join(', ')}`);
+      if (!BankRequestValidator.VALID_ENVIRONMENTS.includes(request.env as typeof BankRequestValidator.VALID_ENVIRONMENTS[number])) {
+        errors.push(`Invalid environment parameter. Must be one of: ${BankRequestValidator.VALID_ENVIRONMENTS.join(', ')}`);
       } else {
         env = request.env as Environment | 'all';
       }
     }
 
     // Validate and parse page parameter
-    let page: number | undefined = undefined;
+    let page: number | undefined ;
     if (request.page !== undefined) {
       const parsedPage = parseInt(request.page, 10);
-      if (isNaN(parsedPage) || parsedPage < 1) {
+      if (Number.isNaN(parsedPage) || parsedPage < 1) {
         errors.push('Page parameter must be a positive integer');
       } else {
         page = parsedPage;
@@ -30,10 +30,10 @@ export class BankRequestValidator {
     }
 
     // Validate and parse limit parameter
-    let limit: number | undefined = undefined;
+    let limit: number | undefined ;
     if (request.limit !== undefined) {
       const parsedLimit = parseInt(request.limit, 10);
-      if (isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 100) {
+      if (Number.isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 100) {
         errors.push('Limit parameter must be a positive integer between 1 and 100');
       } else {
         limit = parsedLimit;

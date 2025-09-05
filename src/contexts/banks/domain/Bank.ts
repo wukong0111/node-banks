@@ -53,14 +53,14 @@ export interface Pagination {
   totalPages: number;
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
   timestamp?: string;
 }
 
-export interface PaginatedApiResponse<T = any> extends ApiResponse<T> {
+export interface PaginatedApiResponse<T = unknown> extends ApiResponse<T> {
   pagination: Pagination;
 }
 

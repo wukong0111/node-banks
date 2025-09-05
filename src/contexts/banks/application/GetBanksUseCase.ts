@@ -2,7 +2,7 @@ import type { BankRepository } from '../domain/BankRepository.js';
 import type { Bank, PaginatedApiResponse } from '../domain/Bank.js';
 import type { GetBanksRequest } from './dto/GetBanksRequest.js';
 import { BankRequestValidator } from '../domain/services/BankRequestValidator.js';
-import { Result, ResultBuilder } from '../domain/Result.js';
+import { type Result, ResultBuilder } from '../domain/Result.js';
 
 export class GetBanksUseCase {
   constructor(private readonly bankRepository: BankRepository) {}

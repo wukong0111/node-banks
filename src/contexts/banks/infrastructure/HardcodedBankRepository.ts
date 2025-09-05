@@ -1,5 +1,5 @@
 import type { BankRepository } from '../domain/BankRepository.js';
-import type { Bank, BankFilters, PaginatedApiResponse, Environment } from '../domain/Bank.js';
+import type { Bank, BankFilters, PaginatedApiResponse } from '../domain/Bank.js';
 
 export class HardcodedBankRepository implements BankRepository {
   private readonly banks: Bank[] = [
