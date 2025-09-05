@@ -2,7 +2,7 @@
   "name": "banks",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch src/apps/banks/index.ts",
     "build": "tsc",
     "start": "node dist/index.js"
   },
