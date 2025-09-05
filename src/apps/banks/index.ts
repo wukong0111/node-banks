@@ -30,9 +30,9 @@ app.route('/', banksController);
 
 const port = parseInt(process.env.PORT || '3000', 10);
 
-console.log(`<æ Bank Service API starting on port ${port}`);
-console.log(`< Server will be available at http://localhost:${port}`);
-console.log(`=Ê API endpoints:`);
+console.log(`Bank Service API starting on port ${port}`);
+console.log(`Server will be available at http://localhost:${port}`);
+console.log(`API endpoints:`);
 console.log(`   GET http://localhost:${port}/health`);
 console.log(`   GET http://localhost:${port}/health/jwt`);
 console.log(`   GET http://localhost:${port}/api/banks`);

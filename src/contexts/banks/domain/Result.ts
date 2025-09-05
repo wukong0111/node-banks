@@ -11,19 +11,17 @@ export interface Failure<E = string> {
   timestamp: string;
 }
 
-export class ResultBuilder {
-  static success<T>(data: T): Success<T> {
-    return {
-      success: true,
-      data
-    };
-  }
+export function createSuccess<T>(data: T): Success<T> {
+  return {
+    success: true,
+    data
+  };
+}
 
-  static failure<E = string>(error: E): Failure<E> {
-    return {
-      success: false,
-      error,
-      timestamp: new Date().toISOString()
-    };
-  }
+export function createFailure<E = string>(error: E): Failure<E> {
+  return {
+    success: false,
+    error,
+    timestamp: new Date().toISOString()
+  };
 }

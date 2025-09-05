@@ -1,18 +1,18 @@
 import type { BankRepository } from '../domain/BankRepository.js';
 import type { Bank, PaginatedApiResponse } from '../domain/Bank.js';
 import type { GetBanksRequest } from './dto/GetBanksRequest.js';
-import { BankRequestValidator } from '../domain/services/BankRequestValidator.js';
-import { type Result, ResultBuilder } from '../domain/Result.js';
+import { validateBankRequest } from '../domain/services/BankRequestValidator.js';
+import { type Result, createSuccess, createFailure } from '../domain/Result.js';
 
 export class GetBanksUseCase {
   constructor(private readonly bankRepository: BankRepository) {}
 
   async execute(request: GetBanksRequest): Promise<Result<PaginatedApiResponse<Bank[]>>> {
     // Validate request parameters
-    const validationResult = BankRequestValidator.validate(request);
+    const validationResult = validateBankRequest(request);
     
     if (!validationResult.success) {
-      return ResultBuilder.failure(validationResult.error);
+      return createFailure(validationResult.error);
     }
 
     const validatedFilters = validationResult.data;
@@ -26,10 +26,10 @@ export class GetBanksUseCase {
 
     try {
       const result = await this.bankRepository.findAll(finalFilters);
-      return ResultBuilder.success(result);
+      return createSuccess(result);
     } catch (error) {
       console.error('Error in GetBanksUseCase:', error);
-      return ResultBuilder.failure('Internal server error');
+      return createFailure('Internal server error');
     }
   }
 }
