@@ -236,7 +236,7 @@ export class HardcodedBankRepository implements BankRepository {
     };
   }
 
-  async findById(bankId: string, _environment?: Environment): Promise<BankWithEnvironments | null> {
+  async findById(bankId: string): Promise<BankWithEnvironments | null> {
     const bank = this.banks.find(b => b.bank_id === bankId);
     if (!bank) {
       return null;

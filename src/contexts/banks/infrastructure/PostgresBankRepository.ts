@@ -136,7 +136,7 @@ export class PostgresBankRepository implements BankRepository {
 		};
 	}
 
-	public async findById(bankId: string, _environment?: Environment): Promise<BankWithEnvironments | null> {
+	public async findById(bankId: string): Promise<BankWithEnvironments | null> {
 		// Get bank data
 		const bankQuery = `
 			SELECT 

@@ -1,5 +1,5 @@
 import type { BankRepository } from "@contexts/banks/domain/BankRepository.js";
-import type { Bank, BankFilters, PaginatedApiResponse, BankWithEnvironments, Environment } from "@contexts/banks/domain/Bank.js";
+import type { Bank, BankFilters, PaginatedApiResponse, BankWithEnvironments } from "@contexts/banks/domain/Bank.js";
 
 export class MockBankRepository implements BankRepository {
 	private banks: Bank[] = [];
@@ -109,7 +109,7 @@ export class MockBankRepository implements BankRepository {
 		this.findByIdErrorMessage = "Repository error";
 	}
 
-	public async findById(bankId: string, _environment?: Environment): Promise<BankWithEnvironments | null> {
+	public async findById(bankId: string): Promise<BankWithEnvironments | null> {
 		if (this.shouldFailOnFindByIdFlag) {
 			throw new Error(this.findByIdErrorMessage);
 		}
