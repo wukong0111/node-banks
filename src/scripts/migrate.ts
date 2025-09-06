@@ -27,7 +27,7 @@ async function main(): Promise<void> {
 			case "up":
 				await migrationRunner.up(param);
 				break;
-			case "down":
+			case "down": {
 				const steps = param ? Number.parseInt(param, 10) : 1;
 				if (Number.isNaN(steps) || steps < 1) {
 					console.error("❌ Steps must be a positive number");
@@ -35,6 +35,7 @@ async function main(): Promise<void> {
 				}
 				await migrationRunner.down(steps);
 				break;
+			}
 			case "status":
 				await migrationRunner.status();
 				break;

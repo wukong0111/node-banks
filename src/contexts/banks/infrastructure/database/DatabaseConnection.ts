@@ -1,4 +1,4 @@
-import { Pool, type PoolClient, type QueryResult } from "pg";
+import { Pool, type PoolClient, type QueryResult, type QueryResultRow } from "pg";
 import { databaseConfig } from "./config.js";
 
 export class DatabaseConnection {
@@ -22,7 +22,7 @@ export class DatabaseConnection {
 		return DatabaseConnection.instance;
 	}
 
-	public async query<T = any>(
+	public async query<T extends QueryResultRow = QueryResultRow>(
 		text: string,
 		params?: unknown[],
 	): Promise<QueryResult<T>> {

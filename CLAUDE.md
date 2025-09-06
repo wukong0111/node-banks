@@ -11,9 +11,10 @@ curl -s "http://localhost:3000/health" | jq       # Test health endpoint
 curl -s "http://localhost:3000/api/banks?limit=2" | jq  # Test banks endpoint
 
 # Code Quality
+npm run check                                      # Complete validation (types + linting - MANDATORY)
 npx biome lint                                     # Check for linting warnings (MUST be 0)
 npx biome lint --write                             # Auto-fix linting issues
-npx tsc --noEmit                                  # Check TypeScript errors
+npm run typecheck                                  # Check TypeScript errors (MUST be 0)
 ```
 
 ## What Goes Where
@@ -51,30 +52,57 @@ npx tsc --noEmit                                  # Check TypeScript errors
 - **Controllers should be < 20 lines (extract params → call use case → map response)**
 - **One use case = one file**
 - **Import types with `import type` when possible**
-- **MANDATORY: All Biome linting warnings must be fixed before any commit**
-  - Run `npx biome lint` - must show 0 warnings
-  - Use `npx biome lint --write` for auto-fixes first
-  - No code is acceptable with linting warnings
+- **MANDATORY: Complete code validation before any commit**
+  - Run `npm run check` - must pass completely (0 errors, 0 warnings)
+  - TypeScript: `npm run typecheck` must show 0 errors
+  - Linting: `npx biome lint` must show 0 warnings  
+  - Use `npm run check:fix` for auto-fixes first
+  - No code is acceptable with type errors or linting warnings
 
 ## Current Status & Limitations
 
 ### ✅ Working
 - GET /api/banks (pagination, filtering, validation)
 - Health checks (/health, /health/jwt)
-- 8 hardcoded Spanish banks
+- PostgreSQL database with migrations and seeders
+- Unit tests with Vitest (GetBanksUseCase - 15 tests passing)
+- Complete TypeScript type safety
 
 ### ❌ Not Implemented Yet
-- Database (uses hardcoded data)
 - JWT authentication middleware
 - POST/PUT bank operations
 - Bank groups endpoints (/api/bank-groups)
-- Tests
+- Integration tests with real database
+- End-to-end tests
 
 ### 🛠️ Tech Stack
 - **Framework**: Hono.js + Node.js 22+
-- **Language**: TypeScript 5.9+
+- **Language**: TypeScript 5.9+ (strict mode)
+- **Database**: PostgreSQL with pg driver
+- **Testing**: Vitest + Object Mother pattern
 - **Linting**: Biome (tab indentation, double quotes)
 - **Dev**: tsx for hot reload
+
+## Testing
+
+```bash
+# Unit Tests
+npm test                                          # Run all tests 
+npm run test:watch                                # Watch mode
+npm run test:coverage                             # Coverage report
+npm run test:ui                                   # Visual test UI
+
+# Database Operations  
+npm run db:setup                                  # Create DB + migrate + seed
+npm run db:migrate                                # Run pending migrations
+npm run db:seed                                   # Run seeders
+```
+
+**Testing Philosophy:**
+- Unit tests use **Object Mother pattern** with functions (not classes)
+- Tests are **DB-independent** using mocks and type-safe Result patterns
+- Follow **Arrange-Act-Assert** structure with clear type guards
+- **15/15 tests passing** for GetBanksUseCase with complete coverage
 
 ## Request Flow
 ```
