@@ -22,12 +22,14 @@
     "test:watch": "vitest --watch",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npx biome lint",
-    "check:fix": "npx biome lint --write && npm run typecheck"
+    "check:fix": "npx biome lint --write && npm run typecheck",
+    "jwt:generate": "tsx src/scripts/generate-jwt.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.0",
     "dotenv": "^17.2.2",
     "hono": "^4.9.6",
+    "jose": "^6.1.0",
     "pg": "^8.16.3"
   },
   "devDependencies": {
