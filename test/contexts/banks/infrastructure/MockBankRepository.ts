@@ -1,10 +1,13 @@
 import type { BankRepository } from "@contexts/banks/domain/BankRepository.js";
-import type { Bank, BankFilters, PaginatedApiResponse } from "@contexts/banks/domain/Bank.js";
+import type { Bank, BankFilters, PaginatedApiResponse, BankWithEnvironments, Environment } from "@contexts/banks/domain/Bank.js";
 
 export class MockBankRepository implements BankRepository {
 	private banks: Bank[] = [];
+	private banksWithEnvironments: Map<string, BankWithEnvironments> = new Map();
 	private shouldFail = false;
+	private shouldFailOnFindByIdFlag = false;
 	private errorMessage = "Repository error";
+	private findByIdErrorMessage = "Repository error";
 
 	// Configuration methods for testing
 	public setBanks(banks: Bank[]): void {
@@ -22,6 +25,15 @@ export class MockBankRepository implements BankRepository {
 	public shouldFailOnFindAll(fail = true, errorMessage = "Repository error"): void {
 		this.shouldFail = fail;
 		this.errorMessage = errorMessage;
+	}
+
+	public shouldFailOnFindById(fail = true, errorMessage = "Repository error"): void {
+		this.shouldFailOnFindByIdFlag = fail;
+		this.findByIdErrorMessage = errorMessage;
+	}
+
+	public setBankWithEnvironments(bankId: string, bankWithEnvironments: BankWithEnvironments): void {
+		this.banksWithEnvironments.set(bankId, bankWithEnvironments);
 	}
 
 	// Repository implementation
@@ -90,7 +102,18 @@ export class MockBankRepository implements BankRepository {
 
 	public reset(): void {
 		this.clear();
+		this.banksWithEnvironments.clear();
 		this.shouldFail = false;
+		this.shouldFailOnFindByIdFlag = false;
 		this.errorMessage = "Repository error";
+		this.findByIdErrorMessage = "Repository error";
+	}
+
+	public async findById(bankId: string, _environment?: Environment): Promise<BankWithEnvironments | null> {
+		if (this.shouldFailOnFindByIdFlag) {
+			throw new Error(this.findByIdErrorMessage);
+		}
+
+		return this.banksWithEnvironments.get(bankId) || null;
 	}
 }

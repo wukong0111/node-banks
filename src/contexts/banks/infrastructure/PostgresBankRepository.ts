@@ -1,5 +1,5 @@
 import type { BankRepository } from "../domain/BankRepository.js";
-import type { Bank, BankFilters, PaginatedApiResponse } from "../domain/Bank.js";
+import type { Bank, BankFilters, PaginatedApiResponse, BankWithEnvironments, Environment, BankEnvironmentConfig } from "../domain/Bank.js";
 import { DatabaseConnection } from "./database/DatabaseConnection.js";
 
 interface BankRow {
@@ -19,6 +19,25 @@ interface BankRow {
 	documentation: string | null;
 	keywords: object | null;
 	attribute: object | null;
+}
+
+interface BankEnvironmentRow {
+	environment: Environment;
+	enabled: number;
+	blocked: boolean;
+	risky: boolean;
+	app_auth_setup_required: boolean;
+	blocked_text: string | null;
+	risky_message: string | null;
+	supports_instant_payments: boolean | null;
+	instant_payments_activated: boolean | null;
+	instant_payments_limit: number | null;
+	ok_status_codes_simple_payment: object | null;
+	ok_status_codes_instant_payment: object | null;
+	ok_status_codes_periodic_payment: object | null;
+	enabled_periodic_payment: boolean | null;
+	frequency_periodic_payment: string | null;
+	config_periodic_payment: string | null;
 }
 
 export class PostgresBankRepository implements BankRepository {
@@ -117,8 +136,9 @@ export class PostgresBankRepository implements BankRepository {
 		};
 	}
 
-	public async findById(bankId: string): Promise<Bank | null> {
-		const query = `
+	public async findById(bankId: string, _environment?: Environment): Promise<BankWithEnvironments | null> {
+		// Get bank data
+		const bankQuery = `
 			SELECT 
 				b.bank_id,
 				b.name,
@@ -140,13 +160,64 @@ export class PostgresBankRepository implements BankRepository {
 			WHERE b.bank_id = $1
 		`;
 
-		const result = await this.db.query<BankRow>(query, [bankId]);
+		const bankResult = await this.db.query<BankRow>(bankQuery, [bankId]);
 		
-		if (result.rows.length === 0) {
+		if (bankResult.rows.length === 0) {
 			return null;
 		}
 
-		return this.mapRowToBank(result.rows[0]);
+		const bank = this.mapRowToBank(bankResult.rows[0]);
+
+		// Get environment configurations
+		const envQuery = `
+			SELECT 
+				be.environment,
+				be.enabled,
+				be.blocked,
+				be.risky,
+				be.app_auth_setup_required,
+				be.blocked_text,
+				be.risky_message,
+				be.supports_instant_payments,
+				be.instant_payments_activated,
+				be.instant_payments_limit,
+				be.ok_status_codes_simple_payment,
+				be.ok_status_codes_instant_payment,
+				be.ok_status_codes_periodic_payment,
+				be.enabled_periodic_payment,
+				be.frequency_periodic_payment,
+				be.config_periodic_payment
+			FROM bank_environments be
+			WHERE be.bank_id = $1
+		`;
+
+		const envResult = await this.db.query<BankEnvironmentRow>(envQuery, [bankId]);
+
+		// Map environment configs
+		const environment_configs: Record<Environment, BankEnvironmentConfig> = {} as Record<Environment, BankEnvironmentConfig>;
+
+		for (const row of envResult.rows) {
+			environment_configs[row.environment] = this.mapRowToEnvironmentConfig(row);
+		}
+
+		// If no environment configs found, create default ones
+		if (Object.keys(environment_configs).length === 0) {
+			const defaultEnvironments: Environment[] = ['production', 'test', 'sandbox', 'development'];
+			for (const env of defaultEnvironments) {
+				environment_configs[env] = {
+					environment: env,
+					enabled: 1,
+					blocked: false,
+					risky: false,
+					app_auth_setup_required: false
+				};
+			}
+		}
+
+		return {
+			...bank,
+			environment_configs
+		};
 	}
 
 	public async count(filters: Omit<BankFilters, 'page' | 'limit'>): Promise<number> {
@@ -204,6 +275,27 @@ export class PostgresBankRepository implements BankRepository {
 			documentation: row.documentation,
 			keywords: row.keywords,
 			attribute: row.attribute,
+		};
+	}
+
+	private mapRowToEnvironmentConfig(row: BankEnvironmentRow): BankEnvironmentConfig {
+		return {
+			environment: row.environment,
+			enabled: row.enabled,
+			blocked: row.blocked,
+			risky: row.risky,
+			app_auth_setup_required: row.app_auth_setup_required,
+			blocked_text: row.blocked_text,
+			risky_message: row.risky_message,
+			supports_instant_payments: row.supports_instant_payments,
+			instant_payments_activated: row.instant_payments_activated,
+			instant_payments_limit: row.instant_payments_limit,
+			ok_status_codes_simple_payment: row.ok_status_codes_simple_payment,
+			ok_status_codes_instant_payment: row.ok_status_codes_instant_payment,
+			ok_status_codes_periodic_payment: row.ok_status_codes_periodic_payment,
+			enabled_periodic_payment: row.enabled_periodic_payment,
+			frequency_periodic_payment: row.frequency_periodic_payment,
+			config_periodic_payment: row.config_periodic_payment,
 		};
 	}
 }

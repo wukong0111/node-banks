@@ -1,7 +1,71 @@
 import type { BankRepository } from '../domain/BankRepository.js';
-import type { Bank, BankFilters, PaginatedApiResponse } from '../domain/Bank.js';
+import type { Bank, BankFilters, PaginatedApiResponse, BankWithEnvironments, Environment, BankEnvironmentConfig } from '../domain/Bank.js';
 
 export class HardcodedBankRepository implements BankRepository {
+  private readonly environmentConfigs: Record<string, Record<Environment, BankEnvironmentConfig>> = {
+    santander_es: {
+      production: {
+        environment: 'production',
+        enabled: 1,
+        blocked: false,
+        risky: false,
+        app_auth_setup_required: true
+      },
+      test: {
+        environment: 'test',
+        enabled: 1,
+        blocked: false,
+        risky: false,
+        app_auth_setup_required: false
+      },
+      sandbox: {
+        environment: 'sandbox',
+        enabled: 1,
+        blocked: false,
+        risky: true,
+        app_auth_setup_required: false
+      },
+      development: {
+        environment: 'development',
+        enabled: 1,
+        blocked: false,
+        risky: false,
+        app_auth_setup_required: false
+      }
+    },
+    bbva_es: {
+      production: {
+        environment: 'production',
+        enabled: 1,
+        blocked: false,
+        risky: false,
+        app_auth_setup_required: false
+      },
+      test: {
+        environment: 'test',
+        enabled: 1,
+        blocked: false,
+        risky: true,
+        app_auth_setup_required: false
+      },
+      sandbox: {
+        environment: 'sandbox',
+        enabled: 0,
+        blocked: true,
+        risky: false,
+        app_auth_setup_required: false,
+        blocked_text: "Maintenance in progress"
+      },
+      development: {
+        environment: 'development',
+        enabled: 1,
+        blocked: false,
+        risky: false,
+        app_auth_setup_required: false
+      }
+    }
+  };
+
   private readonly banks: Bank[] = [
     {
       bank_id: "santander_es",
@@ -169,6 +233,54 @@ export class HardcodedBankRepository implements BankRepository {
         total,
         totalPages
       }
+    };
+  }
+
+  async findById(bankId: string, _environment?: Environment): Promise<BankWithEnvironments | null> {
+    const bank = this.banks.find(b => b.bank_id === bankId);
+    if (!bank) {
+      return null;
+    }
+
+    const configs = this.environmentConfigs[bankId] || {};
+    
+    // Create default configs for banks without specific environment configs
+    const defaultConfigs: Record<Environment, BankEnvironmentConfig> = {
+      production: {
+        environment: 'production',
+        enabled: 1,
+        blocked: false,
+        risky: false,
+        app_auth_setup_required: false
+      },
+      test: {
+        environment: 'test',
+        enabled: 1,
+        blocked: false,
+        risky: false,
+        app_auth_setup_required: false
+      },
+      sandbox: {
+        environment: 'sandbox',
+        enabled: 1,
+        blocked: false,
+        risky: false,
+        app_auth_setup_required: false
+      },
+      development: {
+        environment: 'development',
+        enabled: 1,
+        blocked: false,
+        risky: false,
+        app_auth_setup_required: false
+      }
+    };
+
+    const environment_configs = Object.keys(configs).length > 0 ? configs : defaultConfigs;
+
+    return {
+      ...bank,
+      environment_configs
     };
   }
 }
