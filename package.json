@@ -4,15 +4,29 @@
   "scripts": {
     "dev": "tsx watch src/apps/banks/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "db:create": "createdb banks_db",
+    "db:drop": "dropdb banks_db --if-exists",
+    "db:migrate": "tsx src/scripts/migrate.ts up",
+    "db:migrate:down": "tsx src/scripts/migrate.ts down",
+    "db:migrate:status": "tsx src/scripts/migrate.ts status",
+    "db:migrate:reset": "tsx src/scripts/migrate.ts reset",
+    "db:seed": "tsx src/scripts/seed.ts run",
+    "db:seed:fresh": "tsx src/scripts/seed.ts fresh",
+    "db:seed:list": "tsx src/scripts/seed.ts list",
+    "db:setup": "npm run db:create && npm run db:migrate && npm run db:seed",
+    "db:reset": "npm run db:drop && npm run db:setup"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.0",
-    "hono": "^4.9.6"
+    "dotenv": "^17.2.2",
+    "hono": "^4.9.6",
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.3",
     "@types/node": "^22.0.0",
+    "@types/pg": "^8.15.5",
     "tsx": "^4.19.2",
     "typescript": "^5.9.2",
     "typescript-language-server": "^4.4.0"
