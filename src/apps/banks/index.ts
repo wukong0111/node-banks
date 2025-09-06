@@ -1,7 +1,9 @@
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { banksController } from '../../contexts/banks/presentation/BanksController.js';
+import { createLogger } from '../../shared/infrastructure/logging/LoggerFactory.js';
 
+const logger = createLogger().withContext({ service: 'BankServiceAPI' });
 const app = new Hono();
 
 // Health check endpoints (as per API documentation)
@@ -30,12 +32,15 @@ app.route('/', banksController);
 
 const port = parseInt(process.env.PORT || '3000', 10);
 
-console.log(`Bank Service API starting on port ${port}`);
-console.log(`Server will be available at http://localhost:${port}`);
-console.log(`API endpoints:`);
-console.log(`   GET http://localhost:${port}/health`);
-console.log(`   GET http://localhost:${port}/health/jwt`);
-console.log(`   GET http://localhost:${port}/api/banks`);
+logger.info('Bank Service API starting', { 
+  port,
+  environment: process.env.NODE_ENV || 'development',
+  endpoints: [
+    `http://localhost:${port}/health`,
+    `http://localhost:${port}/health/jwt`,
+    `http://localhost:${port}/api/banks`
+  ]
+});
 
 serve({
   fetch: app.fetch,

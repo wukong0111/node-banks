@@ -8,13 +8,15 @@ import type { Environment } from '../domain/Bank.js';
 import { jwtMiddleware } from '../../../shared/infrastructure/auth/JWTMiddleware.js';
 import { requirePermission } from '../../../shared/infrastructure/auth/PermissionMiddleware.js';
 import { Permission } from '../../../shared/domain/auth/Permission.js';
+import { createLogger } from '../../../shared/infrastructure/logging/LoggerFactory.js';
 
 const banksController = new Hono();
 
 // Initialize dependencies
+const logger = createLogger().withContext({ service: 'BanksController' });
 const bankRepository = new HardcodedBankRepository();
-const getBanksUseCase = new GetBanksUseCase(bankRepository);
-const getBankDetailsUseCase = new GetBankDetailsUseCase(bankRepository);
+const getBanksUseCase = new GetBanksUseCase(bankRepository, logger);
+const getBankDetailsUseCase = new GetBankDetailsUseCase(bankRepository, logger);
 
 banksController.get('/api/banks', 
   jwtMiddleware(),

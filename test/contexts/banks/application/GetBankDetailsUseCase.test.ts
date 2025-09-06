@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { GetBankDetailsUseCase } from "@contexts/banks/application/GetBankDetailsUseCase.js";
 import { MockBankRepository } from "@test/contexts/banks/infrastructure/MockBankRepository.js";
 import { createSantanderBank, createBankWithId } from "@test/contexts/banks/domain/BankMother.js";
+import { createMockLogger } from "@test/shared/application/services/MockLoggerService.js";
 import type { BankWithEnvironments, BankWithEnvironment, Environment, BankEnvironmentConfig } from "@contexts/banks/domain/Bank.js";
 
 describe("GetBankDetailsUseCase", () => {
@@ -10,7 +11,8 @@ describe("GetBankDetailsUseCase", () => {
 
 	beforeEach(() => {
 		mockRepository = new MockBankRepository();
-		useCase = new GetBankDetailsUseCase(mockRepository);
+		const mockLogger = createMockLogger();
+		useCase = new GetBankDetailsUseCase(mockRepository, mockLogger);
 	});
 
 	describe("when bank exists", () => {

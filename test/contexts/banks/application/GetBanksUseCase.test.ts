@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { GetBanksUseCase } from "@contexts/banks/application/GetBanksUseCase.js";
 import { MockBankRepository } from "@test/contexts/banks/infrastructure/MockBankRepository.js";
+import { createMockLogger } from "@test/shared/application/services/MockLoggerService.js";
 import {
 	createBankList,
 	createSpanishBankList,
@@ -31,7 +32,8 @@ describe("GetBanksUseCase", () => {
 
 	beforeEach(() => {
 		repository = new MockBankRepository();
-		useCase = new GetBanksUseCase(repository);
+		const mockLogger = createMockLogger();
+		useCase = new GetBanksUseCase(repository, mockLogger);
 	});
 
 	describe("when request is valid", () => {

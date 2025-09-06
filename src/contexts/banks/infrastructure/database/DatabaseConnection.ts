@@ -1,16 +1,18 @@
 import { Pool, type PoolClient, type QueryResult, type QueryResultRow } from "pg";
 import { databaseConfig } from "./config.js";
+import { createLogger } from "../../../../shared/infrastructure/logging/LoggerFactory.js";
 
 export class DatabaseConnection {
 	private static instance: DatabaseConnection;
 	private pool: Pool;
+	private logger = createLogger().withContext({ service: "DatabaseConnection" });
 
 	private constructor() {
 		this.pool = new Pool(databaseConfig);
 
 		// Handle pool errors
 		this.pool.on("error", (err) => {
-			console.error("Unexpected error on idle client", err);
+			this.logger.fatal("Unexpected error on idle client", err);
 			process.exit(-1);
 		});
 	}
@@ -30,11 +32,21 @@ export class DatabaseConnection {
 		try {
 			const result = await this.pool.query<T>(text, params);
 			const duration = Date.now() - start;
-			console.log("Executed query", { text, duration, rows: result.rowCount });
+			this.logger.debug("Query executed successfully", { 
+				text, 
+				duration: `${duration}ms`, 
+				rows: result.rowCount,
+				params: params?.length || 0
+			});
 			return result;
 		} catch (error) {
 			const duration = Date.now() - start;
-			console.error("Query error", { text, duration, error });
+			this.logger.error("Query execution failed", {
+				text,
+				duration: `${duration}ms`,
+				params: params?.length || 0,
+				error: error instanceof Error ? error.message : String(error)
+			});
 			throw error;
 		}
 	}
@@ -67,9 +79,12 @@ export class DatabaseConnection {
 	public async ping(): Promise<boolean> {
 		try {
 			await this.query("SELECT 1");
+			this.logger.debug("Database ping successful");
 			return true;
 		} catch (error) {
-			console.error("Database ping failed:", error);
+			this.logger.error("Database ping failed", {
+				error: error instanceof Error ? error.message : String(error)
+			});
 			return false;
 		}
 	}

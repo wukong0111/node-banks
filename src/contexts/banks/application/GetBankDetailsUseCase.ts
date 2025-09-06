@@ -4,15 +4,22 @@ import type { GetBankDetailsResponse } from "./dto/GetBankDetailsResponse.js";
 import type { BankWithEnvironment } from "../domain/Bank.js";
 import type { Result } from "../domain/Result.js";
 import { createSuccess, createFailure } from "../domain/Result.js";
+import type { LoggerService } from '../../../shared/application/services/LoggerService.js';
 
 export class GetBankDetailsUseCase {
-	constructor(private readonly bankRepository: BankRepository) {}
+	constructor(
+		private readonly bankRepository: BankRepository,
+		private readonly logger: LoggerService
+	) {}
 
 	async execute(request: GetBankDetailsRequest): Promise<Result<GetBankDetailsResponse>> {
+		this.logger.debug('Getting bank details', { bankId: request.bankId, env: request.env });
+		
 		try {
 			const bankWithEnvironments = await this.bankRepository.findById(request.bankId);
 			
 			if (!bankWithEnvironments) {
+				this.logger.warn('Bank not found', { bankId: request.bankId });
 				return createFailure("Bank not found");
 			}
 
@@ -21,6 +28,11 @@ export class GetBankDetailsUseCase {
 				const environmentConfig = bankWithEnvironments.environment_configs[request.env];
 				
 				if (!environmentConfig) {
+					this.logger.warn('Environment not found for bank', { 
+						bankId: request.bankId, 
+						env: request.env,
+						availableEnvironments: Object.keys(bankWithEnvironments.environment_configs)
+					});
 					return createFailure(`Environment '${request.env}' not found for bank '${request.bankId}'`);
 				}
 
@@ -36,6 +48,11 @@ export class GetBankDetailsUseCase {
 					data: bankWithEnvironment
 				};
 
+				this.logger.info('Bank details retrieved for specific environment', {
+					bankId: request.bankId,
+					env: request.env
+				});
+
 				return createSuccess(response);
 			}
 
@@ -45,9 +62,19 @@ export class GetBankDetailsUseCase {
 				data: bankWithEnvironments
 			};
 
+			this.logger.info('Bank details retrieved with all environments', {
+				bankId: request.bankId,
+				environmentCount: Object.keys(bankWithEnvironments.environment_configs).length
+			});
+
 			return createSuccess(response);
 
 		} catch (error) {
+			this.logger.error('Failed to get bank details', {
+				bankId: request.bankId,
+				env: request.env,
+				error: error instanceof Error ? error.message : String(error)
+			});
 			const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
 			return createFailure(`Failed to get bank details: ${errorMessage}`);
 		}
