@@ -1,6 +1,20 @@
-import type { Bank, BankFilters, PaginatedApiResponse, BankWithEnvironments } from './Bank.js';
+import type {
+	Bank,
+	BankFilters,
+	PaginatedApiResponse,
+	BankWithEnvironments,
+	BankEnvironmentConfig,
+	Environment,
+} from "./Bank.js";
 
 export interface BankRepository {
-  findAll(filters: BankFilters): Promise<PaginatedApiResponse<Bank[]>>;
-  findById(bankId: string): Promise<BankWithEnvironments | null>;
+	findAll(filters: BankFilters): Promise<PaginatedApiResponse<Bank[]>>;
+	findById(bankId: string): Promise<BankWithEnvironments | null>;
+	update(
+		bankId: string,
+		updateData: {
+			bankData: Partial<BankWithEnvironments>;
+			environmentConfigs: Record<Environment, BankEnvironmentConfig>;
+		},
+	): Promise<BankWithEnvironments | null>;
 }

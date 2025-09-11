@@ -1,5 +1,12 @@
 import type { BankRepository } from "../domain/BankRepository.js";
-import type { Bank, BankFilters, PaginatedApiResponse, BankWithEnvironments, Environment, BankEnvironmentConfig } from "../domain/Bank.js";
+import type {
+	Bank,
+	BankFilters,
+	PaginatedApiResponse,
+	BankWithEnvironments,
+	Environment,
+	BankEnvironmentConfig,
+} from "../domain/Bank.js";
 import { DatabaseConnection } from "./database/DatabaseConnection.js";
 
 interface BankRow {
@@ -47,7 +54,9 @@ export class PostgresBankRepository implements BankRepository {
 		this.db = DatabaseConnection.getInstance();
 	}
 
-	public async findAll(filters: BankFilters): Promise<PaginatedApiResponse<Bank[]>> {
+	public async findAll(
+		filters: BankFilters,
+	): Promise<PaginatedApiResponse<Bank[]>> {
 		const page = filters.page || 1;
 		const limit = Math.min(filters.limit || 50, 100); // Max 100 items per page
 		const offset = (page - 1) * limit;
@@ -75,9 +84,8 @@ export class PostgresBankRepository implements BankRepository {
 			paramIndex++;
 		}
 
-		const whereClause = conditions.length > 0 
-			? `WHERE ${conditions.join(" AND ")}` 
-			: "";
+		const whereClause =
+			conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
 		// Count total records
 		const countQuery = `
@@ -85,8 +93,11 @@ export class PostgresBankRepository implements BankRepository {
 			FROM banks b
 			${whereClause}
 		`;
-		
-		const countResult = await this.db.query<{ total: string }>(countQuery, params);
+
+		const countResult = await this.db.query<{ total: string }>(
+			countQuery,
+			params,
+		);
 		const total = Number.parseInt(countResult.rows[0]?.total || "0", 10);
 
 		// Get paginated results
@@ -115,7 +126,7 @@ export class PostgresBankRepository implements BankRepository {
 		`;
 
 		params.push(limit, offset);
-		
+
 		const result = await this.db.query<BankRow>(dataQuery, params);
 
 		// Transform rows to domain objects
@@ -161,7 +172,7 @@ export class PostgresBankRepository implements BankRepository {
 		`;
 
 		const bankResult = await this.db.query<BankRow>(bankQuery, [bankId]);
-		
+
 		if (bankResult.rows.length === 0) {
 			return null;
 		}
@@ -191,36 +202,146 @@ export class PostgresBankRepository implements BankRepository {
 			WHERE be.bank_id = $1
 		`;
 
-		const envResult = await this.db.query<BankEnvironmentRow>(envQuery, [bankId]);
+		const envResult = await this.db.query<BankEnvironmentRow>(envQuery, [
+			bankId,
+		]);
 
 		// Map environment configs
-		const environment_configs: Record<Environment, BankEnvironmentConfig> = {} as Record<Environment, BankEnvironmentConfig>;
+		const environment_configs: Record<Environment, BankEnvironmentConfig> =
+			{} as Record<Environment, BankEnvironmentConfig>;
 
 		for (const row of envResult.rows) {
-			environment_configs[row.environment] = this.mapRowToEnvironmentConfig(row);
+			environment_configs[row.environment] =
+				this.mapRowToEnvironmentConfig(row);
 		}
 
 		// If no environment configs found, create default ones
 		if (Object.keys(environment_configs).length === 0) {
-			const defaultEnvironments: Environment[] = ['production', 'test', 'sandbox', 'development'];
+			const defaultEnvironments: Environment[] = [
+				"production",
+				"test",
+				"sandbox",
+				"development",
+			];
 			for (const env of defaultEnvironments) {
 				environment_configs[env] = {
 					environment: env,
 					enabled: 1,
 					blocked: false,
 					risky: false,
-					app_auth_setup_required: false
+					app_auth_setup_required: false,
 				};
 			}
 		}
 
 		return {
 			...bank,
-			environment_configs
+			environment_configs,
 		};
 	}
 
-	public async count(filters: Omit<BankFilters, 'page' | 'limit'>): Promise<number> {
+	public async update(
+		bankId: string,
+		updateData: {
+			bankData: Partial<BankWithEnvironments>;
+			environmentConfigs: Record<Environment, BankEnvironmentConfig>;
+		},
+	): Promise<BankWithEnvironments | null> {
+		const client = await this.db.getClient();
+
+		try {
+			await client.query("BEGIN");
+
+			// Update bank data if provided
+			if (Object.keys(updateData.bankData).length > 0) {
+				const bankFields = Object.keys(updateData.bankData);
+				const bankValues = Object.values(updateData.bankData);
+				const setClause = bankFields
+					.map((field, index) => `${field} = $${index + 2}`)
+					.join(", ");
+
+				const bankQuery = `
+					UPDATE banks
+					SET ${setClause}, updated_at = NOW()
+					WHERE bank_id = $1
+				`;
+
+				await client.query(bankQuery, [bankId, ...bankValues]);
+			}
+
+			// Update environment configurations
+			for (const [env, config] of Object.entries(
+				updateData.environmentConfigs,
+			)) {
+				const envQuery = `
+					INSERT INTO bank_environments (
+						bank_id, environment, enabled, blocked, risky, app_auth_setup_required,
+						blocked_text, risky_message, supports_instant_payments,
+						instant_payments_activated, instant_payments_limit,
+						ok_status_codes_simple_payment, ok_status_codes_instant_payment,
+						ok_status_codes_periodic_payment, enabled_periodic_payment,
+						frequency_periodic_payment, config_periodic_payment, updated_at
+					) VALUES (
+						$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW()
+					)
+					ON CONFLICT (bank_id, environment)
+					DO UPDATE SET
+						enabled = EXCLUDED.enabled,
+						blocked = EXCLUDED.blocked,
+						risky = EXCLUDED.risky,
+						app_auth_setup_required = EXCLUDED.app_auth_setup_required,
+						blocked_text = EXCLUDED.blocked_text,
+						risky_message = EXCLUDED.risky_message,
+						supports_instant_payments = EXCLUDED.supports_instant_payments,
+						instant_payments_activated = EXCLUDED.instant_payments_activated,
+						instant_payments_limit = EXCLUDED.instant_payments_limit,
+						ok_status_codes_simple_payment = EXCLUDED.ok_status_codes_simple_payment,
+						ok_status_codes_instant_payment = EXCLUDED.ok_status_codes_instant_payment,
+						ok_status_codes_periodic_payment = EXCLUDED.ok_status_codes_periodic_payment,
+						enabled_periodic_payment = EXCLUDED.enabled_periodic_payment,
+						frequency_periodic_payment = EXCLUDED.frequency_periodic_payment,
+						config_periodic_payment = EXCLUDED.config_periodic_payment,
+						updated_at = NOW()
+				`;
+
+				const envValues = [
+					bankId,
+					env,
+					config.enabled,
+					config.blocked,
+					config.risky,
+					config.app_auth_setup_required,
+					config.blocked_text,
+					config.risky_message,
+					config.supports_instant_payments,
+					config.instant_payments_activated,
+					config.instant_payments_limit,
+					config.ok_status_codes_simple_payment,
+					config.ok_status_codes_instant_payment,
+					config.ok_status_codes_periodic_payment,
+					config.enabled_periodic_payment,
+					config.frequency_periodic_payment,
+					config.config_periodic_payment,
+				];
+
+				await client.query(envQuery, envValues);
+			}
+
+			await client.query("COMMIT");
+
+			// Return updated bank
+			return await this.findById(bankId);
+		} catch (error) {
+			await client.query("ROLLBACK");
+			throw error;
+		} finally {
+			client.release();
+		}
+	}
+
+	public async count(
+		filters: Omit<BankFilters, "page" | "limit">,
+	): Promise<number> {
 		const conditions: string[] = [];
 		const params: unknown[] = [];
 		let paramIndex = 1;
@@ -243,16 +364,15 @@ export class PostgresBankRepository implements BankRepository {
 			paramIndex++;
 		}
 
-		const whereClause = conditions.length > 0 
-			? `WHERE ${conditions.join(" AND ")}` 
-			: "";
+		const whereClause =
+			conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
 		const query = `
 			SELECT COUNT(*) as total
 			FROM banks b
 			${whereClause}
 		`;
-		
+
 		const result = await this.db.query<{ total: string }>(query, params);
 		return Number.parseInt(result.rows[0]?.total || "0", 10);
 	}
@@ -278,7 +398,9 @@ export class PostgresBankRepository implements BankRepository {
 		};
 	}
 
-	private mapRowToEnvironmentConfig(row: BankEnvironmentRow): BankEnvironmentConfig {
+	private mapRowToEnvironmentConfig(
+		row: BankEnvironmentRow,
+	): BankEnvironmentConfig {
 		return {
 			environment: row.environment,
 			enabled: row.enabled,

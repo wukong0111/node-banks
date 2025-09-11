@@ -1,5 +1,12 @@
 import type { BankRepository } from "@contexts/banks/domain/BankRepository.js";
-import type { Bank, BankFilters, PaginatedApiResponse, BankWithEnvironments } from "@contexts/banks/domain/Bank.js";
+import type {
+	Bank,
+	BankFilters,
+	PaginatedApiResponse,
+	BankWithEnvironments,
+	BankEnvironmentConfig,
+	Environment,
+} from "@contexts/banks/domain/Bank.js";
 
 export class MockBankRepository implements BankRepository {
 	private banks: Bank[] = [];
@@ -22,22 +29,33 @@ export class MockBankRepository implements BankRepository {
 		this.banks = [];
 	}
 
-	public shouldFailOnFindAll(fail = true, errorMessage = "Repository error"): void {
+	public shouldFailOnFindAll(
+		fail = true,
+		errorMessage = "Repository error",
+	): void {
 		this.shouldFail = fail;
 		this.errorMessage = errorMessage;
 	}
 
-	public shouldFailOnFindById(fail = true, errorMessage = "Repository error"): void {
+	public shouldFailOnFindById(
+		fail = true,
+		errorMessage = "Repository error",
+	): void {
 		this.shouldFailOnFindByIdFlag = fail;
 		this.findByIdErrorMessage = errorMessage;
 	}
 
-	public setBankWithEnvironments(bankId: string, bankWithEnvironments: BankWithEnvironments): void {
+	public setBankWithEnvironments(
+		bankId: string,
+		bankWithEnvironments: BankWithEnvironments,
+	): void {
 		this.banksWithEnvironments.set(bankId, bankWithEnvironments);
 	}
 
 	// Repository implementation
-	public async findAll(filters: BankFilters): Promise<PaginatedApiResponse<Bank[]>> {
+	public async findAll(
+		filters: BankFilters,
+	): Promise<PaginatedApiResponse<Bank[]>> {
 		if (this.shouldFail) {
 			throw new Error(this.errorMessage);
 		}
@@ -47,20 +65,20 @@ export class MockBankRepository implements BankRepository {
 		// Apply filters
 		if (filters.name) {
 			filteredBanks = filteredBanks.filter((bank) =>
-				bank.name.toLowerCase().includes(filters.name?.toLowerCase() ?? "")
+				bank.name.toLowerCase().includes(filters.name?.toLowerCase() ?? ""),
 			);
 		}
 
 		if (filters.api) {
 			filteredBanks = filteredBanks.filter((bank) =>
-				bank.api.toLowerCase().includes(filters.api?.toLowerCase() ?? "")
+				bank.api.toLowerCase().includes(filters.api?.toLowerCase() ?? ""),
 			);
 		}
 
 		if (filters.country) {
 			const countryFilter = filters.country.toLowerCase();
-			filteredBanks = filteredBanks.filter((bank) =>
-				bank.country.toLowerCase() === countryFilter
+			filteredBanks = filteredBanks.filter(
+				(bank) => bank.country.toLowerCase() === countryFilter,
 			);
 		}
 
@@ -115,5 +133,28 @@ export class MockBankRepository implements BankRepository {
 		}
 
 		return this.banksWithEnvironments.get(bankId) || null;
+	}
+
+	public async update(
+		bankId: string,
+		updateData: {
+			bankData: Partial<BankWithEnvironments>;
+			environmentConfigs: Record<Environment, BankEnvironmentConfig>;
+		},
+	): Promise<BankWithEnvironments | null> {
+		const existingBank = this.banksWithEnvironments.get(bankId);
+		if (!existingBank) {
+			return null;
+		}
+
+		// Update bank data
+		const updatedBank: BankWithEnvironments = {
+			...existingBank,
+			...updateData.bankData,
+			environment_configs: updateData.environmentConfigs,
+		};
+
+		this.banksWithEnvironments.set(bankId, updatedBank);
+		return updatedBank;
 	}
 }
