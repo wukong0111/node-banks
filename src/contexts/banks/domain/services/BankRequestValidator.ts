@@ -5,6 +5,7 @@ import type {
 	CreateBankWithEnvironmentsRequest,
 	CreateBankWithConfigurationsRequest,
 } from "../../application/dto/CreateBankRequest.js";
+import type { CreateBankGroupRequest } from "../../application/dto/CreateBankGroupRequest.js";
 import { type Result, createSuccess, createFailure } from "../Result.js";
 
 const VALID_ENVIRONMENTS = [
@@ -202,6 +203,62 @@ export function validateCreateBankRequest(
 					break;
 				}
 			}
+		}
+	}
+
+	// Return first error if any validation failed
+	if (errors.length > 0) {
+		return createFailure(errors[0]);
+	}
+
+	return createSuccess(request);
+}
+
+export function validateCreateBankGroupRequest(
+	request: CreateBankGroupRequest,
+): Result<CreateBankGroupRequest> {
+	const errors: string[] = [];
+
+	// Validate required fields
+	if (
+		!request.group_id ||
+		typeof request.group_id !== "string" ||
+		request.group_id.trim() === ""
+	) {
+		errors.push("group_id is required and must be a non-empty string");
+	}
+
+	if (
+		!request.name ||
+		typeof request.name !== "string" ||
+		request.name.trim() === ""
+	) {
+		errors.push("name is required and must be a non-empty string");
+	}
+
+	// Validate UUID format for group_id
+	const uuidRegex =
+		/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+	if (request.group_id && !uuidRegex.test(request.group_id)) {
+		errors.push("group_id must be a valid UUID");
+	}
+
+	// Validate optional fields if provided
+	if (request.description !== undefined && request.description !== null) {
+		if (typeof request.description !== "string") {
+			errors.push("description must be a string or null");
+		}
+	}
+
+	if (request.logo_url !== undefined && request.logo_url !== null) {
+		if (typeof request.logo_url !== "string") {
+			errors.push("logo_url must be a string or null");
+		}
+	}
+
+	if (request.website !== undefined && request.website !== null) {
+		if (typeof request.website !== "string") {
+			errors.push("website must be a string or null");
 		}
 	}
 

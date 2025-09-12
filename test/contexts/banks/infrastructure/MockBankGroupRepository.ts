@@ -3,7 +3,9 @@ import type { BankGroup } from "@contexts/banks/domain/BankGroup.js";
 
 export class MockBankGroupRepository implements BankGroupRepository {
 	private bankGroups: BankGroup[] = [];
-	private shouldFail = false;
+	private shouldFailFindAll = false;
+	private shouldFailFindById = false;
+	private shouldFailCreate = false;
 	private errorMessage = "Repository error";
 
 	// Configuration methods for testing
@@ -23,14 +25,44 @@ export class MockBankGroupRepository implements BankGroupRepository {
 		fail = true,
 		errorMessage = "Repository error",
 	): void {
-		this.shouldFail = fail;
+		this.shouldFailFindAll = fail;
+		this.errorMessage = errorMessage;
+	}
+
+	public shouldFailOnFindById(
+		fail = true,
+		errorMessage = "Repository error",
+	): void {
+		this.shouldFailFindById = fail;
+		this.errorMessage = errorMessage;
+	}
+
+	public shouldFailOnCreate(
+		fail = true,
+		errorMessage = "Repository error",
+	): void {
+		this.shouldFailCreate = fail;
 		this.errorMessage = errorMessage;
 	}
 
 	public async findAll(): Promise<BankGroup[]> {
-		if (this.shouldFail) {
+		if (this.shouldFailFindAll) {
 			throw new Error(this.errorMessage);
 		}
 		return [...this.bankGroups];
+	}
+
+	public async findById(id: string): Promise<BankGroup | null> {
+		if (this.shouldFailFindById) {
+			throw new Error(this.errorMessage);
+		}
+		return this.bankGroups.find((group) => group.group_id === id) ?? null;
+	}
+
+	public async create(bankGroup: BankGroup): Promise<void> {
+		if (this.shouldFailCreate) {
+			throw new Error(this.errorMessage);
+		}
+		this.bankGroups.push(bankGroup);
 	}
 }

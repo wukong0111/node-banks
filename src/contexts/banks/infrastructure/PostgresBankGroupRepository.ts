@@ -41,6 +41,53 @@ export class PostgresBankGroupRepository implements BankGroupRepository {
 		return bankGroups;
 	}
 
+	public async findById(id: string): Promise<BankGroup | null> {
+		const query = `
+			SELECT
+				group_id,
+				name,
+				description,
+				logo_url,
+				website,
+				created_at,
+				updated_at
+			FROM bank_groups
+			WHERE group_id = $1
+		`;
+
+		const result = await this.db.query<BankGroupRow>(query, [id]);
+
+		if (result.rows.length === 0) {
+			return null;
+		}
+
+		return this.mapRowToBankGroup(result.rows[0]);
+	}
+
+	public async create(bankGroup: BankGroup): Promise<void> {
+		const query = `
+			INSERT INTO bank_groups (
+				group_id,
+				name,
+				description,
+				logo_url,
+				website,
+				created_at,
+				updated_at
+			) VALUES ($1, $2, $3, $4, $5, $6, $7)
+		`;
+
+		await this.db.query(query, [
+			bankGroup.group_id,
+			bankGroup.name,
+			bankGroup.description,
+			bankGroup.logo_url,
+			bankGroup.website,
+			bankGroup.created_at,
+			bankGroup.updated_at,
+		]);
+	}
+
 	private mapRowToBankGroup(row: BankGroupRow): BankGroup {
 		return {
 			group_id: row.group_id,
