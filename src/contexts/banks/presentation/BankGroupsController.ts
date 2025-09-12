@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { GetBankGroupsUseCase } from "../application/GetBankGroupsUseCase.js";
 import { CreateBankGroupUseCase } from "../application/CreateBankGroupUseCase.js";
+import { GetBankGroupUseCase } from "../application/GetBankGroupUseCase.js";
 import { PostgresBankGroupRepository } from "../infrastructure/PostgresBankGroupRepository.js";
 import { jwtMiddleware } from "../../../shared/infrastructure/auth/JWTMiddleware.js";
 import { requirePermission } from "../../../shared/infrastructure/auth/PermissionMiddleware.js";
@@ -17,6 +18,10 @@ const getBankGroupsUseCase = new GetBankGroupsUseCase(
 	logger,
 );
 const createBankGroupUseCase = new CreateBankGroupUseCase(
+	bankGroupRepository,
+	logger,
+);
+const getBankGroupUseCase = new GetBankGroupUseCase(
 	bankGroupRepository,
 	logger,
 );
@@ -81,6 +86,50 @@ bankGroupsController.post(
 				message: result.data.message,
 			},
 			201,
+		);
+	},
+);
+
+bankGroupsController.get(
+	"/api/bank-groups/:groupId",
+	jwtMiddleware(),
+	requirePermission(Permission.BANKS_READ),
+	async (c) => {
+		// Extract groupId from path parameters
+		const groupId = c.req.param("groupId");
+
+		// Execute use case
+		const result = await getBankGroupUseCase.execute({ group_id: groupId });
+
+		// Map result to HTTP response
+		if (!result.success) {
+			if (result.error === "Bank group not found") {
+				return c.json(
+					{
+						success: false,
+						error: result.error,
+						timestamp: new Date().toISOString(),
+					},
+					404,
+				);
+			}
+
+			return c.json(
+				{
+					success: false,
+					error: result.error,
+					timestamp: new Date().toISOString(),
+				},
+				400,
+			);
+		}
+
+		return c.json(
+			{
+				success: true,
+				data: result.data.data,
+			},
+			200,
 		);
 	},
 );
