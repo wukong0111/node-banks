@@ -2,10 +2,12 @@ import { Hono } from "hono";
 import { GetBanksUseCase } from "../application/GetBanksUseCase.js";
 import { GetBankDetailsUseCase } from "../application/GetBankDetailsUseCase.js";
 import { UpdateBankUseCase } from "../application/UpdateBankUseCase.js";
+import { CreateBankUseCase } from "../application/CreateBankUseCase.js";
 import { PostgresBankRepository } from "../infrastructure/PostgresBankRepository.js";
 import type { GetBanksRequest } from "../application/dto/GetBanksRequest.js";
 import type { GetBankDetailsRequest } from "../application/dto/GetBankDetailsRequest.js";
 import type { UpdateBankRequestWithId } from "../application/dto/UpdateBankRequest.js";
+import type { CreateBankRequest } from "../application/dto/CreateBankRequest.js";
 import type { Environment } from "../domain/Bank.js";
 import { jwtMiddleware } from "../../../shared/infrastructure/auth/JWTMiddleware.js";
 import { requirePermission } from "../../../shared/infrastructure/auth/PermissionMiddleware.js";
@@ -20,6 +22,7 @@ const bankRepository = new PostgresBankRepository();
 const getBanksUseCase = new GetBanksUseCase(bankRepository, logger);
 const getBankDetailsUseCase = new GetBankDetailsUseCase(bankRepository, logger);
 const updateBankUseCase = new UpdateBankUseCase(bankRepository, logger);
+const createBankUseCase = new CreateBankUseCase(bankRepository, logger);
 
 banksController.get(
 	"/api/banks",
@@ -45,6 +48,50 @@ banksController.get(
 		}
 
 		return c.json(result.data, 200);
+	},
+);
+
+banksController.post(
+	"/api/banks",
+	jwtMiddleware(),
+	requirePermission(Permission.BANKS_WRITE),
+	async (c) => {
+		try {
+			// Extract request body
+			const requestBody = await c.req.json();
+
+			const request: CreateBankRequest = requestBody;
+
+			// Execute use case
+			const result = await createBankUseCase.execute(request);
+
+			// Map result to HTTP response
+			if (!result.success) {
+				const statusCode = result.error.includes("already exists") ? 409 : 400;
+				return c.json(
+					{
+						success: false,
+						error: result.error,
+						timestamp: new Date().toISOString(),
+					},
+					statusCode,
+				);
+			}
+
+			return c.json(result.data, 201);
+		} catch (error) {
+			logger.error("Error creating bank", {
+				error: error instanceof Error ? error.message : String(error),
+			});
+			return c.json(
+				{
+					success: false,
+					error: "Internal server error",
+					timestamp: new Date().toISOString(),
+				},
+				500,
+			);
+		}
 	},
 );
 

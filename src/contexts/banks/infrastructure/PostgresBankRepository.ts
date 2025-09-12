@@ -339,6 +339,98 @@ export class PostgresBankRepository implements BankRepository {
 		}
 	}
 
+	public async insertBank(bankData: {
+		bankData: BankWithEnvironments;
+		environmentConfigs: Record<Environment, BankEnvironmentConfig>;
+	}): Promise<BankWithEnvironments | null> {
+		const client = await this.db.getClient();
+
+		try {
+			await client.query("BEGIN");
+
+			// Insert bank data
+			const bankQuery = `
+				INSERT INTO banks (
+					bank_id, name, bank_codes, api, api_version, aspsp, country,
+					auth_type_choice_required, bic, real_name, product_code,
+					bank_group_id, logo_url, documentation, keywords, attribute,
+					created_at, updated_at
+				) VALUES (
+					$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), NOW()
+				)
+			`;
+
+			const bankValues = [
+				bankData.bankData.bank_id,
+				bankData.bankData.name,
+				JSON.stringify(bankData.bankData.bank_codes),
+				bankData.bankData.api,
+				bankData.bankData.api_version,
+				bankData.bankData.aspsp,
+				bankData.bankData.country,
+				bankData.bankData.auth_type_choice_required,
+				bankData.bankData.bic,
+				bankData.bankData.real_name,
+				bankData.bankData.product_code,
+				bankData.bankData.bank_group_id,
+				bankData.bankData.logo_url,
+				bankData.bankData.documentation,
+				bankData.bankData.keywords,
+				bankData.bankData.attribute,
+			];
+
+			await client.query(bankQuery, bankValues);
+
+			// Insert environment configurations
+			for (const [env, config] of Object.entries(bankData.environmentConfigs)) {
+				const envQuery = `
+					INSERT INTO bank_environments (
+						bank_id, environment, enabled, blocked, risky, app_auth_setup_required,
+						blocked_text, risky_message, supports_instant_payments,
+						instant_payments_activated, instant_payments_limit,
+						ok_status_codes_simple_payment, ok_status_codes_instant_payment,
+						ok_status_codes_periodic_payment, enabled_periodic_payment,
+						frequency_periodic_payment, config_periodic_payment, created_at, updated_at
+					) VALUES (
+						$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW(), NOW()
+					)
+				`;
+
+				const envValues = [
+					bankData.bankData.bank_id,
+					env,
+					config.enabled,
+					config.blocked,
+					config.risky,
+					config.app_auth_setup_required,
+					config.blocked_text,
+					config.risky_message,
+					config.supports_instant_payments,
+					config.instant_payments_activated,
+					config.instant_payments_limit,
+					config.ok_status_codes_simple_payment,
+					config.ok_status_codes_instant_payment,
+					config.ok_status_codes_periodic_payment,
+					config.enabled_periodic_payment,
+					config.frequency_periodic_payment,
+					config.config_periodic_payment,
+				];
+
+				await client.query(envQuery, envValues);
+			}
+
+			await client.query("COMMIT");
+
+			// Return created bank
+			return await this.findById(bankData.bankData.bank_id);
+		} catch (error) {
+			await client.query("ROLLBACK");
+			throw error;
+		} finally {
+			client.release();
+		}
+	}
+
 	public async count(
 		filters: Omit<BankFilters, "page" | "limit">,
 	): Promise<number> {

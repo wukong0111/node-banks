@@ -135,6 +135,27 @@ export class MockBankRepository implements BankRepository {
 		return this.banksWithEnvironments.get(bankId) || null;
 	}
 
+	public async insertBank(bankData: {
+		bankData: BankWithEnvironments;
+		environmentConfigs: Record<Environment, BankEnvironmentConfig>;
+	}): Promise<BankWithEnvironments | null> {
+		const bankId = bankData.bankData.bank_id;
+
+		// Check if bank already exists
+		if (this.banksWithEnvironments.has(bankId)) {
+			return null;
+		}
+
+		// Create the bank with environments
+		const newBank: BankWithEnvironments = {
+			...bankData.bankData,
+			environment_configs: bankData.environmentConfigs,
+		};
+
+		this.banksWithEnvironments.set(bankId, newBank);
+		return newBank;
+	}
+
 	public async update(
 		bankId: string,
 		updateData: {
