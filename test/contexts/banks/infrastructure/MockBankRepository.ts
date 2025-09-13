@@ -7,6 +7,11 @@ import type {
 	BankEnvironmentConfig,
 	Environment,
 } from "@contexts/banks/domain/Bank.js";
+import {
+	type Result,
+	createSuccess,
+	createFailure,
+} from "@contexts/banks/domain/Result.js";
 
 export class MockBankRepository implements BankRepository {
 	private banks: Bank[] = [];
@@ -177,5 +182,48 @@ export class MockBankRepository implements BankRepository {
 
 		this.banksWithEnvironments.set(bankId, updatedBank);
 		return updatedBank;
+	}
+
+	public async count(
+		filters: Omit<BankFilters, "page" | "limit">,
+	): Promise<number> {
+		let filteredBanks = [...this.banks];
+
+		// Apply filters
+		if (filters.name) {
+			filteredBanks = filteredBanks.filter((bank) =>
+				bank.name.toLowerCase().includes(filters.name?.toLowerCase() ?? ""),
+			);
+		}
+
+		if (filters.api) {
+			filteredBanks = filteredBanks.filter((bank) =>
+				bank.api.toLowerCase().includes(filters.api?.toLowerCase() ?? ""),
+			);
+		}
+
+		if (filters.country) {
+			const countryFilter = filters.country.toLowerCase();
+			filteredBanks = filteredBanks.filter(
+				(bank) => bank.country.toLowerCase() === countryFilter,
+			);
+		}
+
+		return filteredBanks.length;
+	}
+
+	public async deleteBank(bankId: string): Promise<Result<void>> {
+		// Check if bank exists
+		if (!this.banksWithEnvironments.has(bankId)) {
+			return createFailure(`Bank with ID '${bankId}' not found`);
+		}
+
+		// Remove from banks array
+		this.banks = this.banks.filter((bank) => bank.bank_id !== bankId);
+
+		// Remove from banks with environments map
+		this.banksWithEnvironments.delete(bankId);
+
+		return createSuccess(undefined);
 	}
 }

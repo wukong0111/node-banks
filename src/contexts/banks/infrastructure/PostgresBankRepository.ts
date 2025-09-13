@@ -8,6 +8,7 @@ import type {
 	BankEnvironmentConfig,
 } from "../domain/Bank.js";
 import { DatabaseConnection } from "./database/DatabaseConnection.js";
+import { type Result, createSuccess, createFailure } from "../domain/Result.js";
 
 interface BankRow {
 	bank_id: string;
@@ -467,6 +468,44 @@ export class PostgresBankRepository implements BankRepository {
 
 		const result = await this.db.query<{ total: string }>(query, params);
 		return Number.parseInt(result.rows[0]?.total || "0", 10);
+	}
+
+	public async deleteBank(bankId: string): Promise<Result<void>> {
+		const client = await this.db.getClient();
+
+		try {
+			await client.query("BEGIN");
+
+			// Check if bank exists
+			const checkQuery = "SELECT bank_id FROM banks WHERE bank_id = $1";
+			const checkResult = await client.query<{ bank_id: string }>(checkQuery, [
+				bankId,
+			]);
+
+			if (checkResult.rows.length === 0) {
+				await client.query("ROLLBACK");
+				return createFailure("Bank not found");
+			}
+
+			// Delete bank environment configurations first (foreign key constraint)
+			const deleteEnvsQuery =
+				"DELETE FROM bank_environments WHERE bank_id = $1";
+			await client.query(deleteEnvsQuery, [bankId]);
+
+			// Delete the bank
+			const deleteBankQuery = "DELETE FROM banks WHERE bank_id = $1";
+			await client.query(deleteBankQuery, [bankId]);
+
+			await client.query("COMMIT");
+			return createSuccess(undefined);
+		} catch (error) {
+			await client.query("ROLLBACK");
+			return createFailure(
+				`Failed to delete bank: ${error instanceof Error ? error.message : String(error)}`,
+			);
+		} finally {
+			client.release();
+		}
 	}
 
 	private mapRowToBank(row: BankRow): Bank {

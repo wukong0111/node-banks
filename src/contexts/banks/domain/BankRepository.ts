@@ -6,6 +6,7 @@ import type {
 	BankEnvironmentConfig,
 	Environment,
 } from "./Bank.js";
+import type { Result } from "./Result.js";
 
 export interface BankRepository {
 	findAll(filters: BankFilters): Promise<PaginatedApiResponse<Bank[]>>;
@@ -21,4 +22,5 @@ export interface BankRepository {
 			environmentConfigs: Record<Environment, BankEnvironmentConfig>;
 		},
 	): Promise<BankWithEnvironments | null>;
+	deleteBank(bankId: string): Promise<Result<void>>;
 }

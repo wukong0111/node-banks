@@ -3,11 +3,13 @@ import { GetBanksUseCase } from "../application/GetBanksUseCase.js";
 import { GetBankDetailsUseCase } from "../application/GetBankDetailsUseCase.js";
 import { UpdateBankUseCase } from "../application/UpdateBankUseCase.js";
 import { CreateBankUseCase } from "../application/CreateBankUseCase.js";
+import { DeleteBankUseCase } from "../application/DeleteBankUseCase.js";
 import { PostgresBankRepository } from "../infrastructure/PostgresBankRepository.js";
 import type { GetBanksRequest } from "../application/dto/GetBanksRequest.js";
 import type { GetBankDetailsRequest } from "../application/dto/GetBankDetailsRequest.js";
 import type { UpdateBankRequestWithId } from "../application/dto/UpdateBankRequest.js";
 import type { CreateBankRequest } from "../application/dto/CreateBankRequest.js";
+import type { DeleteBankRequest } from "../application/dto/DeleteBankRequest.js";
 import type { Environment } from "../domain/Bank.js";
 import { jwtMiddleware } from "../../../shared/infrastructure/auth/JWTMiddleware.js";
 import { requirePermission } from "../../../shared/infrastructure/auth/PermissionMiddleware.js";
@@ -23,6 +25,7 @@ const getBanksUseCase = new GetBanksUseCase(bankRepository, logger);
 const getBankDetailsUseCase = new GetBankDetailsUseCase(bankRepository, logger);
 const updateBankUseCase = new UpdateBankUseCase(bankRepository, logger);
 const createBankUseCase = new CreateBankUseCase(bankRepository, logger);
+const deleteBankUseCase = new DeleteBankUseCase(bankRepository);
 
 banksController.get(
 	"/api/banks",
@@ -163,6 +166,52 @@ banksController.put(
 			return c.json(result.data, 200);
 		} catch (error) {
 			logger.error("Error updating bank", {
+				error: error instanceof Error ? error.message : String(error),
+			});
+			return c.json(
+				{
+					success: false,
+					error: "Internal server error",
+					timestamp: new Date().toISOString(),
+				},
+				500,
+			);
+		}
+	},
+);
+
+banksController.delete(
+	"/api/banks/:bankId",
+	jwtMiddleware(),
+	requirePermission(Permission.BANKS_WRITE),
+	async (c) => {
+		try {
+			// Extract path parameter
+			const bankId = c.req.param("bankId");
+
+			const request: DeleteBankRequest = {
+				bankId,
+			};
+
+			// Execute use case
+			const result = await deleteBankUseCase.execute(request);
+
+			// Map result to HTTP response
+			if (!result.success) {
+				const statusCode = result.error.includes("not found") ? 404 : 400;
+				return c.json(
+					{
+						success: false,
+						error: result.error,
+						timestamp: new Date().toISOString(),
+					},
+					statusCode,
+				);
+			}
+
+			return c.json(result.data, 200);
+		} catch (error) {
+			logger.error("Error deleting bank", {
 				error: error instanceof Error ? error.message : String(error),
 			});
 			return c.json(

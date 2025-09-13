@@ -6,6 +6,7 @@ import type {
 	CreateBankWithConfigurationsRequest,
 } from "../../application/dto/CreateBankRequest.js";
 import type { CreateBankGroupRequest } from "../../application/dto/CreateBankGroupRequest.js";
+import type { DeleteBankRequest } from "../../application/dto/DeleteBankRequest.js";
 import { type Result, createSuccess, createFailure } from "../Result.js";
 
 const VALID_ENVIRONMENTS = [
@@ -260,6 +261,28 @@ export function validateCreateBankGroupRequest(
 		if (typeof request.website !== "string") {
 			errors.push("website must be a string or null");
 		}
+	}
+
+	// Return first error if any validation failed
+	if (errors.length > 0) {
+		return createFailure(errors[0]);
+	}
+
+	return createSuccess(request);
+}
+
+export function validateDeleteBankRequest(
+	request: DeleteBankRequest,
+): Result<DeleteBankRequest> {
+	const errors: string[] = [];
+
+	// Validate required fields
+	if (
+		!request.bankId ||
+		typeof request.bankId !== "string" ||
+		request.bankId.trim() === ""
+	) {
+		errors.push("bankId is required and must be a non-empty string");
 	}
 
 	// Return first error if any validation failed
