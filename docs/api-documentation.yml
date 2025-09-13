@@ -425,6 +425,43 @@ paths:
                         type: string
                         example: "Bank not found"
 
+    delete:
+      summary: Eliminar Banco
+      description: |
+        Elimina un banco existente y sus configuraciones asociadas.
+        Requiere permiso `banks:write`.
+      tags:
+        - Banks
+      parameters:
+        - name: bankId
+          in: path
+          required: true
+          description: ID único del banco a eliminar
+          schema:
+            type: string
+            example: "santander_es"
+      responses:
+        '204':
+          description: Banco eliminado exitosamente
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Banco no encontrado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      error:
+                        type: string
+                        example: "Bank not found"
+
   /api/bank-groups:
     get:
       summary: Obtener Lista de Grupos Bancarios
