@@ -8,6 +8,9 @@
 - **Lint**: `npx biome lint`, `npx biome lint --write` (auto-fix)
 - **Typecheck**: `npm run typecheck` (tsc --noEmit)
 - **Check**: `npm run check` (lint + typecheck), `npm run check:fix` (auto-fix)
+- **YAML validation**: `npx yaml-lint docs/api-documentation.yml` or `npx js-yaml docs/api-documentation.yml`
+- **Tool usage**: Prefer `npx` for temporary tools over `npm install` to avoid polluting node_modules/
+- **Tool selection**: Always consult with user before using any external tools or libraries
 
 ## Code Style
 - **Formatting**: Tab indentation, double quotes, Biome formatter
