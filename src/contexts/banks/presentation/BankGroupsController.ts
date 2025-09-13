@@ -1,43 +1,18 @@
 import { Hono } from "hono";
-import { GetBankGroupsUseCase } from "../application/GetBankGroupsUseCase.js";
-import { CreateBankGroupUseCase } from "../application/CreateBankGroupUseCase.js";
-import { GetBankGroupUseCase } from "../application/GetBankGroupUseCase.js";
-import { UpdateBankGroupUseCase } from "../application/UpdateBankGroupUseCase.js";
-import { PostgresBankGroupRepository } from "../infrastructure/PostgresBankGroupRepository.js";
 import { jwtMiddleware } from "../../../shared/infrastructure/auth/JWTMiddleware.js";
 import { requirePermission } from "../../../shared/infrastructure/auth/PermissionMiddleware.js";
 import { Permission } from "../../../shared/domain/auth/Permission.js";
-import { createLogger } from "../../../shared/infrastructure/logging/LoggerFactory.js";
+import * as deps from "./dependencies.js";
 
-const bankGroupsController = new Hono();
+const bankGroups = new Hono();
 
-// Initialize dependencies
-const logger = createLogger().withContext({ service: "BankGroupsController" });
-const bankGroupRepository = new PostgresBankGroupRepository();
-const getBankGroupsUseCase = new GetBankGroupsUseCase(
-	bankGroupRepository,
-	logger,
-);
-const createBankGroupUseCase = new CreateBankGroupUseCase(
-	bankGroupRepository,
-	logger,
-);
-const getBankGroupUseCase = new GetBankGroupUseCase(
-	bankGroupRepository,
-	logger,
-);
-const updateBankGroupUseCase = new UpdateBankGroupUseCase(
-	bankGroupRepository,
-	logger,
-);
-
-bankGroupsController.get(
-	"/api/bank-groups",
+bankGroups.get(
+	"/",
 	jwtMiddleware(),
 	requirePermission(Permission.BANKS_READ),
 	async (c) => {
 		// Execute use case
-		const result = await getBankGroupsUseCase.execute();
+		const result = await deps.getBankGroupsUseCase.execute();
 
 		// Map result to HTTP response
 		if (!result.success) {
@@ -61,8 +36,8 @@ bankGroupsController.get(
 	},
 );
 
-bankGroupsController.post(
-	"/api/bank-groups",
+bankGroups.post(
+	"/",
 	jwtMiddleware(),
 	requirePermission(Permission.BANKS_WRITE),
 	async (c) => {
@@ -70,7 +45,7 @@ bankGroupsController.post(
 		const body = await c.req.json();
 
 		// Execute use case
-		const result = await createBankGroupUseCase.execute(body);
+		const result = await deps.createBankGroupUseCase.execute(body);
 
 		// Map result to HTTP response
 		if (!result.success) {
@@ -95,8 +70,8 @@ bankGroupsController.post(
 	},
 );
 
-bankGroupsController.get(
-	"/api/bank-groups/:groupId",
+bankGroups.get(
+	"/:groupId",
 	jwtMiddleware(),
 	requirePermission(Permission.BANKS_READ),
 	async (c) => {
@@ -104,7 +79,9 @@ bankGroupsController.get(
 		const groupId = c.req.param("groupId");
 
 		// Execute use case
-		const result = await getBankGroupUseCase.execute({ group_id: groupId });
+		const result = await deps.getBankGroupUseCase.execute({
+			group_id: groupId,
+		});
 
 		// Map result to HTTP response
 		if (!result.success) {
@@ -139,8 +116,8 @@ bankGroupsController.get(
 	},
 );
 
-bankGroupsController.put(
-	"/api/bank-groups/:groupId",
+bankGroups.put(
+	"/:groupId",
 	jwtMiddleware(),
 	requirePermission(Permission.BANKS_WRITE),
 	async (c) => {
@@ -151,7 +128,7 @@ bankGroupsController.put(
 		const body = await c.req.json();
 
 		// Execute use case
-		const result = await updateBankGroupUseCase.execute(groupId, body);
+		const result = await deps.updateBankGroupUseCase.execute(groupId, body);
 
 		// Map result to HTTP response
 		if (!result.success) {
@@ -187,4 +164,4 @@ bankGroupsController.put(
 	},
 );
 
-export { bankGroupsController };
+export default bankGroups;

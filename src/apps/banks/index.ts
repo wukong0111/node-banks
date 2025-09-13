@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
-import { banksController } from "../../contexts/banks/presentation/BanksController.js";
-import { bankGroupsController } from "../../contexts/banks/presentation/BankGroupsController.js";
+import banksRoutes from "../../contexts/banks/presentation/BanksController.js";
+import bankGroupsRoutes from "../../contexts/banks/presentation/BankGroupsController.js";
 import { createLogger } from "../../shared/infrastructure/logging/LoggerFactory.js";
 
 const logger = createLogger().withContext({ service: "BankServiceAPI" });
@@ -29,10 +29,10 @@ app.get("/health/jwt", (c) => {
 });
 
 // Register banks routes
-app.route("/", banksController);
+app.route("/api/banks", banksRoutes);
 
 // Register bank groups routes
-app.route("/", bankGroupsController);
+app.route("/api/bank-groups", bankGroupsRoutes);
 
 const port = parseInt(process.env.PORT || "3000", 10);
 

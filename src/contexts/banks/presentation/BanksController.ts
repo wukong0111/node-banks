@@ -1,10 +1,4 @@
 import { Hono } from "hono";
-import { GetBanksUseCase } from "../application/GetBanksUseCase.js";
-import { GetBankDetailsUseCase } from "../application/GetBankDetailsUseCase.js";
-import { UpdateBankUseCase } from "../application/UpdateBankUseCase.js";
-import { CreateBankUseCase } from "../application/CreateBankUseCase.js";
-import { DeleteBankUseCase } from "../application/DeleteBankUseCase.js";
-import { PostgresBankRepository } from "../infrastructure/PostgresBankRepository.js";
 import type { GetBanksRequest } from "../application/dto/GetBanksRequest.js";
 import type { GetBankDetailsRequest } from "../application/dto/GetBankDetailsRequest.js";
 import type { UpdateBankRequestWithId } from "../application/dto/UpdateBankRequest.js";
@@ -14,21 +8,12 @@ import type { Environment } from "../domain/Bank.js";
 import { jwtMiddleware } from "../../../shared/infrastructure/auth/JWTMiddleware.js";
 import { requirePermission } from "../../../shared/infrastructure/auth/PermissionMiddleware.js";
 import { Permission } from "../../../shared/domain/auth/Permission.js";
-import { createLogger } from "../../../shared/infrastructure/logging/LoggerFactory.js";
+import * as deps from "./dependencies.js";
 
-const banksController = new Hono();
+const banks = new Hono();
 
-// Initialize dependencies
-const logger = createLogger().withContext({ service: "BanksController" });
-const bankRepository = new PostgresBankRepository();
-const getBanksUseCase = new GetBanksUseCase(bankRepository, logger);
-const getBankDetailsUseCase = new GetBankDetailsUseCase(bankRepository, logger);
-const updateBankUseCase = new UpdateBankUseCase(bankRepository, logger);
-const createBankUseCase = new CreateBankUseCase(bankRepository, logger);
-const deleteBankUseCase = new DeleteBankUseCase(bankRepository);
-
-banksController.get(
-	"/api/banks",
+banks.get(
+	"/",
 	jwtMiddleware(),
 	requirePermission(Permission.BANKS_READ),
 	async (c) => {
@@ -43,7 +28,7 @@ banksController.get(
 		};
 
 		// Execute use case
-		const result = await getBanksUseCase.execute(request);
+		const result = await deps.getBanksUseCase.execute(request);
 
 		// Map result to HTTP response
 		if (!result.success) {
@@ -54,8 +39,8 @@ banksController.get(
 	},
 );
 
-banksController.post(
-	"/api/banks",
+banks.post(
+	"/",
 	jwtMiddleware(),
 	requirePermission(Permission.BANKS_WRITE),
 	async (c) => {
@@ -66,7 +51,7 @@ banksController.post(
 			const request: CreateBankRequest = requestBody;
 
 			// Execute use case
-			const result = await createBankUseCase.execute(request);
+			const result = await deps.createBankUseCase.execute(request);
 
 			// Map result to HTTP response
 			if (!result.success) {
@@ -83,7 +68,7 @@ banksController.post(
 
 			return c.json(result.data, 201);
 		} catch (error) {
-			logger.error("Error creating bank", {
+			deps.logger.error("Error creating bank", {
 				error: error instanceof Error ? error.message : String(error),
 			});
 			return c.json(
@@ -98,8 +83,8 @@ banksController.post(
 	},
 );
 
-banksController.get(
-	"/api/banks/:bankId/details",
+banks.get(
+	"/:bankId/details",
 	jwtMiddleware(),
 	requirePermission(Permission.BANKS_READ),
 	async (c) => {
@@ -113,7 +98,7 @@ banksController.get(
 		};
 
 		// Execute use case
-		const result = await getBankDetailsUseCase.execute(request);
+		const result = await deps.getBankDetailsUseCase.execute(request);
 
 		// Map result to HTTP response
 		if (!result.success) {
@@ -132,8 +117,8 @@ banksController.get(
 	},
 );
 
-banksController.put(
-	"/api/banks/:bankId",
+banks.put(
+	"/:bankId",
 	jwtMiddleware(),
 	requirePermission(Permission.BANKS_WRITE),
 	async (c) => {
@@ -148,7 +133,7 @@ banksController.put(
 			};
 
 			// Execute use case
-			const result = await updateBankUseCase.execute(request);
+			const result = await deps.updateBankUseCase.execute(request);
 
 			// Map result to HTTP response
 			if (!result.success) {
@@ -165,7 +150,7 @@ banksController.put(
 
 			return c.json(result.data, 200);
 		} catch (error) {
-			logger.error("Error updating bank", {
+			deps.logger.error("Error updating bank", {
 				error: error instanceof Error ? error.message : String(error),
 			});
 			return c.json(
@@ -180,8 +165,8 @@ banksController.put(
 	},
 );
 
-banksController.delete(
-	"/api/banks/:bankId",
+banks.delete(
+	"/:bankId",
 	jwtMiddleware(),
 	requirePermission(Permission.BANKS_WRITE),
 	async (c) => {
@@ -194,7 +179,7 @@ banksController.delete(
 			};
 
 			// Execute use case
-			const result = await deleteBankUseCase.execute(request);
+			const result = await deps.deleteBankUseCase.execute(request);
 
 			// Map result to HTTP response
 			if (!result.success) {
@@ -211,7 +196,7 @@ banksController.delete(
 
 			return c.json(result.data, 200);
 		} catch (error) {
-			logger.error("Error deleting bank", {
+			deps.logger.error("Error deleting bank", {
 				error: error instanceof Error ? error.message : String(error),
 			});
 			return c.json(
@@ -226,4 +211,4 @@ banksController.delete(
 	},
 );
 
-export { banksController };
+export default banks;
