@@ -4,4 +4,5 @@ export interface BankGroupRepository {
 	findAll(): Promise<BankGroup[]>;
 	findById(id: string): Promise<BankGroup | null>;
 	create(bankGroup: BankGroup): Promise<void>;
+	update(id: string, updates: Partial<BankGroup>): Promise<BankGroup>;
 }

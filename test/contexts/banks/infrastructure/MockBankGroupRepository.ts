@@ -6,6 +6,7 @@ export class MockBankGroupRepository implements BankGroupRepository {
 	private shouldFailFindAll = false;
 	private shouldFailFindById = false;
 	private shouldFailCreate = false;
+	private shouldFailUpdate = false;
 	private errorMessage = "Repository error";
 
 	// Configuration methods for testing
@@ -45,6 +46,14 @@ export class MockBankGroupRepository implements BankGroupRepository {
 		this.errorMessage = errorMessage;
 	}
 
+	public shouldFailOnUpdate(
+		fail = true,
+		errorMessage = "Repository error",
+	): void {
+		this.shouldFailUpdate = fail;
+		this.errorMessage = errorMessage;
+	}
+
 	public async findAll(): Promise<BankGroup[]> {
 		if (this.shouldFailFindAll) {
 			throw new Error(this.errorMessage);
@@ -64,5 +73,28 @@ export class MockBankGroupRepository implements BankGroupRepository {
 			throw new Error(this.errorMessage);
 		}
 		this.bankGroups.push(bankGroup);
+	}
+
+	public async update(
+		id: string,
+		updates: Partial<BankGroup>,
+	): Promise<BankGroup> {
+		if (this.shouldFailUpdate) {
+			throw new Error(this.errorMessage);
+		}
+
+		const index = this.bankGroups.findIndex((group) => group.group_id === id);
+		if (index === -1) {
+			throw new Error(`Bank group with id ${id} not found`);
+		}
+
+		const updatedBankGroup = {
+			...this.bankGroups[index],
+			...updates,
+			updated_at: new Date().toISOString(),
+		};
+
+		this.bankGroups[index] = updatedBankGroup;
+		return updatedBankGroup;
 	}
 }

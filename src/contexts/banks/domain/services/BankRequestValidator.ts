@@ -6,6 +6,7 @@ import type {
 	CreateBankWithConfigurationsRequest,
 } from "../../application/dto/CreateBankRequest.js";
 import type { CreateBankGroupRequest } from "../../application/dto/CreateBankGroupRequest.js";
+import type { UpdateBankGroupRequest } from "../../application/dto/UpdateBankGroupRequest.js";
 import type { DeleteBankRequest } from "../../application/dto/DeleteBankRequest.js";
 import { type Result, createSuccess, createFailure } from "../Result.js";
 
@@ -283,6 +284,57 @@ export function validateDeleteBankRequest(
 		request.bankId.trim() === ""
 	) {
 		errors.push("bankId is required and must be a non-empty string");
+	}
+
+	// Return first error if any validation failed
+	if (errors.length > 0) {
+		return createFailure(errors[0]);
+	}
+
+	return createSuccess(request);
+}
+
+export function validateUpdateBankGroupRequest(
+	request: UpdateBankGroupRequest,
+): Result<UpdateBankGroupRequest> {
+	const errors: string[] = [];
+
+	// Validate that at least one field is provided for update
+	if (
+		request.name === undefined &&
+		request.description === undefined &&
+		request.logo_url === undefined &&
+		request.website === undefined
+	) {
+		errors.push("At least one field must be provided for update");
+	}
+
+	// Validate name if provided
+	if (request.name !== undefined) {
+		if (typeof request.name !== "string" || request.name.trim() === "") {
+			errors.push("name must be a non-empty string");
+		}
+	}
+
+	// Validate description if provided
+	if (request.description !== undefined && request.description !== null) {
+		if (typeof request.description !== "string") {
+			errors.push("description must be a string or null");
+		}
+	}
+
+	// Validate logo_url if provided
+	if (request.logo_url !== undefined && request.logo_url !== null) {
+		if (typeof request.logo_url !== "string") {
+			errors.push("logo_url must be a string or null");
+		}
+	}
+
+	// Validate website if provided
+	if (request.website !== undefined && request.website !== null) {
+		if (typeof request.website !== "string") {
+			errors.push("website must be a string or null");
+		}
 	}
 
 	// Return first error if any validation failed
