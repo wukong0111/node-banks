@@ -22,3 +22,6 @@
 - **Controllers**: < 20 lines, extract params → call use case → map response
 - **Validation**: Always in domain services, never in controllers
 - **Comments**: None unless absolutely necessary
+
+## Git Workflow
+- **Commits**: NEVER commit changes unless explicitly requested by the user
