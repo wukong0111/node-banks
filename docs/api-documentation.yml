@@ -644,6 +644,44 @@ paths:
                         type: string
                         example: "Bank group not found"
 
+    delete:
+      summary: Eliminar Grupo Bancario
+      description: |
+        Elimina un grupo bancario existente.
+        Requiere permiso `banks:write`.
+      tags:
+        - Bank Groups
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          description: ID único del grupo bancario a eliminar (UUID)
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        '204':
+          description: Grupo bancario eliminado exitosamente
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Grupo bancario no encontrado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      error:
+                        type: string
+                        example: "Bank group not found"
+
   /api/filters:
     get:
       summary: Obtener Filtros de Bancos
@@ -1512,6 +1550,6 @@ tags:
   - name: Banks
     description: Operaciones CRUD para bancos
   - name: Bank Groups
-    description: Operaciones de lectura para grupos bancarios
+    description: Operaciones CRUD para grupos bancarios
   - name: Filters
     description: Filtros y metadatos para bancos
