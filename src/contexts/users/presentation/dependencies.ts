@@ -3,7 +3,7 @@ import { RegisterUserUseCase } from "../application/RegisterUserUseCase.js";
 import { LoginUserUseCase } from "../application/LoginUserUseCase.js";
 import { GetUserProfileUseCase } from "../application/GetUserProfileUseCase.js";
 import { UpdateUserProfileUseCase } from "../application/UpdateUserProfileUseCase.js";
-import { SignJWT } from "jose";
+import { SignJWT, type JWTPayload } from "jose";
 import { getJWTConfig } from "../../../shared/infrastructure/config/JWTConfig.js";
 
 // Create a simple JWT service wrapper for user authentication
@@ -11,7 +11,7 @@ class UserJWTService {
 	private readonly config = getJWTConfig();
 	private readonly secretKey = new TextEncoder().encode(this.config.secret);
 
-	async sign(payload: Record<string, any>): Promise<string> {
+	async sign(payload: JWTPayload): Promise<string> {
 		const jwt = new SignJWT(payload)
 			.setProtectedHeader({ alg: this.config.algorithm })
 			.setIssuedAt()

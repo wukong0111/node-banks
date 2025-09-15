@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { UpdateUserProfileUseCase } from "../../../../src/contexts/users/application/UpdateUserProfileUseCase.js";
 import { MockUserRepository } from "../infrastructure/MockUserRepository.js";
-import { UserRequestMother } from "../domain/UserRequestMother.js";
-import { UserMother } from "../domain/UserMother.js";
+import * as UserRequestMother from "../domain/UserRequestMother.js";
+import * as UserMother from "../domain/UserMother.js";
 
 describe("UpdateUserProfileUseCase", () => {
 	let userRepository: MockUserRepository;
@@ -160,7 +160,7 @@ describe("UpdateUserProfileUseCase", () => {
 		});
 
 		const userId = existingUser.userId;
-		const updateRequest = UserRequestMother.shortNameUpdateRequest();
+		const updateRequest = UserRequestMother.invalidNameRegisterRequest();
 
 		// Act
 		const result = await useCase.execute(userId, updateRequest);

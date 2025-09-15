@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { RegisterUserUseCase } from "../../../../src/contexts/users/application/RegisterUserUseCase.js";
 import { MockUserRepository } from "../infrastructure/MockUserRepository.js";
-import { UserRequestMother } from "../domain/UserRequestMother.js";
-import { UserMother } from "../domain/UserMother.js";
-import { PasswordHasher } from "../../../../src/contexts/users/infrastructure/auth/PasswordHasher.js";
+import * as UserRequestMother from "../domain/UserRequestMother.js";
+import * as UserMother from "../domain/UserMother.js";
+import { compare } from "../../../../src/contexts/users/infrastructure/auth/PasswordHasher.js";
 
 describe("RegisterUserUseCase", () => {
 	let userRepository: MockUserRepository;
@@ -50,7 +50,7 @@ describe("RegisterUserUseCase", () => {
 
 	it("should fail when password is too weak", async () => {
 		// Arrange
-		const request = UserRequestMother.weakPasswordRegisterRequest();
+		const request = UserRequestMother.invalidPasswordRegisterRequest();
 
 		// Act
 		const result = await useCase.execute(request);
@@ -66,7 +66,7 @@ describe("RegisterUserUseCase", () => {
 
 	it("should fail when first name is too short", async () => {
 		// Arrange
-		const request = UserRequestMother.shortNameRegisterRequest();
+		const request = UserRequestMother.invalidNameRegisterRequest();
 
 		// Act
 		const result = await useCase.execute(request);
@@ -82,7 +82,7 @@ describe("RegisterUserUseCase", () => {
 
 	it("should fail when email already exists", async () => {
 		// Arrange
-		const existingUser = UserMother.random();
+		const existingUser = UserMother.create();
 		await userRepository.create({
 			email: existingUser.email,
 			password: existingUser.passwordHash,
@@ -117,14 +117,11 @@ describe("RegisterUserUseCase", () => {
 			// Verify the user was created in the repository
 			const createdUser = await userRepository.findByEmail(request.email);
 			expect(createdUser).toBeTruthy();
-			expect(createdUser!.passwordHash).not.toBe(plainPassword);
-			expect(createdUser!.passwordHash).toContain("."); // Hashed password contains salt
+			expect(createdUser?.passwordHash).not.toBe(plainPassword);
+			expect(createdUser?.passwordHash).toContain("."); // Hashed password contains salt
 
 			// Verify the password can be verified
-			const isValid = await PasswordHasher.compare(
-				plainPassword,
-				createdUser!.passwordHash,
-			);
+			const isValid = await compare(plainPassword, createdUser!.passwordHash);
 			expect(isValid).toBe(true);
 		}
 	});

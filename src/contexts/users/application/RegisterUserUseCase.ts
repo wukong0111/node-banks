@@ -1,8 +1,8 @@
 import type { UserRepository } from "../domain/UserRepository.js";
 import type { RegisterUserRequest } from "./dto/RegisterUserRequest.js";
 import type { RegisterUserResponse } from "./dto/RegisterUserResponse.js";
-import { UserValidator } from "../domain/services/UserValidator.js";
-import { PasswordHasher } from "../infrastructure/auth/PasswordHasher.js";
+import { validateCreateUserRequest } from "../domain/services/UserValidator.js";
+import { hash } from "../infrastructure/auth/PasswordHasher.js";
 import { createSuccess, createFailure, type Result } from "../domain/Result.js";
 
 export class RegisterUserUseCase {
@@ -11,7 +11,7 @@ export class RegisterUserUseCase {
 	async execute(
 		request: RegisterUserRequest,
 	): Promise<Result<RegisterUserResponse>> {
-		const validation = UserValidator.validateCreateUserRequest(request);
+		const validation = validateCreateUserRequest(request);
 		if (!validation.isValid) {
 			return createFailure(validation.errors.join(", "));
 		}
@@ -22,7 +22,7 @@ export class RegisterUserUseCase {
 		}
 
 		try {
-			const passwordHash = await PasswordHasher.hash(request.password);
+			const passwordHash = await hash(request.password);
 
 			const user = await this.userRepository.create({
 				email: request.email,
@@ -42,7 +42,7 @@ export class RegisterUserUseCase {
 			};
 
 			return createSuccess(response);
-		} catch (error) {
+		} catch (_error) {
 			return createFailure("Failed to create user");
 		}
 	}

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { GetUserProfileUseCase } from "../../../../src/contexts/users/application/GetUserProfileUseCase.js";
 import { MockUserRepository } from "../infrastructure/MockUserRepository.js";
-import { UserMother } from "../domain/UserMother.js";
+import * as UserMother from "../domain/UserMother.js";
 
 describe("GetUserProfileUseCase", () => {
 	let userRepository: MockUserRepository;

@@ -3,6 +3,7 @@ import { serve } from "@hono/node-server";
 import registerBankRoutes from "../../contexts/banks/presentation/BanksController.js";
 import registerBankGroupRoutes from "../../contexts/banks/presentation/BankGroupsController.js";
 import registerUserRoutes from "../../contexts/users/presentation/UsersController.js";
+import frontendRoutes from "./frontend/routes.js";
 import { createLogger } from "../../shared/infrastructure/logging/LoggerFactory.js";
 
 const logger = createLogger().withContext({ service: "BankServiceAPI" });
@@ -26,6 +27,9 @@ registerBankGroupRoutes(app);
 
 // Register users routes
 registerUserRoutes(app);
+
+// Register frontend routes
+app.route("/", frontendRoutes);
 
 const port = parseInt(process.env.PORT || "3000", 10);
 

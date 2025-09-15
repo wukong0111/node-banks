@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { LoginUserUseCase } from "../../../../src/contexts/users/application/LoginUserUseCase.js";
 import { MockUserRepository } from "../infrastructure/MockUserRepository.js";
-import { UserRequestMother } from "../domain/UserRequestMother.js";
-import { UserMother } from "../domain/UserMother.js";
-import { PasswordHasher } from "../../../../src/contexts/users/infrastructure/auth/PasswordHasher.js";
+import * as UserRequestMother from "../domain/UserRequestMother.js";
+import * as UserMother from "../domain/UserMother.js";
+import { hash } from "../../../../src/contexts/users/infrastructure/auth/PasswordHasher.js";
 
 describe("LoginUserUseCase", () => {
 	let userRepository: MockUserRepository;
@@ -22,7 +22,7 @@ describe("LoginUserUseCase", () => {
 	it("should login successfully with valid credentials", async () => {
 		// Arrange
 		const plainPassword = "ValidPass123";
-		const hashedPassword = await PasswordHasher.hash(plainPassword);
+		const hashedPassword = await hash(plainPassword);
 
 		const existingUser = UserMother.create({
 			email: "test@example.com",
@@ -60,7 +60,7 @@ describe("LoginUserUseCase", () => {
 
 	it("should fail when user does not exist", async () => {
 		// Arrange
-		const request = UserRequestMother.invalidLoginRequest();
+		const request = UserRequestMother.invalidEmailLoginRequest();
 
 		// Act
 		const result = await useCase.execute(request);
@@ -75,7 +75,7 @@ describe("LoginUserUseCase", () => {
 	it("should fail when password is incorrect", async () => {
 		// Arrange
 		const plainPassword = "ValidPass123";
-		const hashedPassword = await PasswordHasher.hash(plainPassword);
+		const hashedPassword = await hash(plainPassword);
 
 		const existingUser = UserMother.create({
 			email: "test@example.com",
@@ -107,7 +107,7 @@ describe("LoginUserUseCase", () => {
 	it("should fail when user account is deactivated", async () => {
 		// Arrange
 		const plainPassword = "ValidPass123";
-		const hashedPassword = await PasswordHasher.hash(plainPassword);
+		const hashedPassword = await hash(plainPassword);
 
 		const existingUser = UserMother.create({
 			isActive: false,
@@ -142,7 +142,7 @@ describe("LoginUserUseCase", () => {
 	it("should generate JWT token with correct payload", async () => {
 		// Arrange
 		const plainPassword = "ValidPass123";
-		const hashedPassword = await PasswordHasher.hash(plainPassword);
+		const hashedPassword = await hash(plainPassword);
 
 		const existingUser = UserMother.create({
 			email: "test@example.com",
@@ -178,7 +178,7 @@ describe("LoginUserUseCase", () => {
 	it("should handle JWT service errors", async () => {
 		// Arrange
 		const plainPassword = "ValidPass123";
-		const hashedPassword = await PasswordHasher.hash(plainPassword);
+		const hashedPassword = await hash(plainPassword);
 
 		const existingUser = UserMother.create({
 			email: "test@example.com",
@@ -219,7 +219,7 @@ describe("LoginUserUseCase", () => {
 	it("should return user data without sensitive information", async () => {
 		// Arrange
 		const plainPassword = "ValidPass123";
-		const hashedPassword = await PasswordHasher.hash(plainPassword);
+		const hashedPassword = await hash(plainPassword);
 
 		const existingUser = UserMother.create({
 			email: "test@example.com",

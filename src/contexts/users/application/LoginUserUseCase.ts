@@ -1,13 +1,16 @@
 import type { UserRepository } from "../domain/UserRepository.js";
 import type { LoginUserRequest } from "./dto/LoginUserRequest.js";
 import type { LoginUserResponse } from "./dto/LoginUserResponse.js";
-import { PasswordHasher } from "../infrastructure/auth/PasswordHasher.js";
+import { compare } from "../infrastructure/auth/PasswordHasher.js";
 import { createSuccess, createFailure, type Result } from "../domain/Result.js";
+import type { JWTPayload } from "jose";
 
 export class LoginUserUseCase {
 	constructor(
 		private readonly userRepository: UserRepository,
-		private readonly jwtService: { sign: (payload: object) => Promise<string> },
+		private readonly jwtService: {
+			sign: (payload: JWTPayload) => Promise<string>;
+		},
 	) {}
 
 	async execute(request: LoginUserRequest): Promise<Result<LoginUserResponse>> {
@@ -20,10 +23,7 @@ export class LoginUserUseCase {
 			return createFailure("Account is deactivated");
 		}
 
-		const isPasswordValid = await PasswordHasher.compare(
-			request.password,
-			user.passwordHash,
-		);
+		const isPasswordValid = await compare(request.password, user.passwordHash);
 		if (!isPasswordValid) {
 			return createFailure("Invalid email or password");
 		}
@@ -45,7 +45,7 @@ export class LoginUserUseCase {
 			};
 
 			return createSuccess(response);
-		} catch (error) {
+		} catch (_error) {
 			return createFailure("Failed to generate authentication token");
 		}
 	}

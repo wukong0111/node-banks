@@ -1,7 +1,7 @@
 import type { UserRepository } from "../domain/UserRepository.js";
 import type { UpdateUserProfileRequest } from "./dto/UpdateUserProfileRequest.js";
 import type { UpdateUserProfileResponse } from "./dto/UpdateUserProfileResponse.js";
-import { UserValidator } from "../domain/services/UserValidator.js";
+import { validateName } from "../domain/services/UserValidator.js";
 import { createSuccess, createFailure, type Result } from "../domain/Result.js";
 
 export class UpdateUserProfileUseCase {
@@ -16,17 +16,20 @@ export class UpdateUserProfileUseCase {
 			return createFailure("User not found");
 		}
 
-		const updates: any = {};
+		const updates: Partial<{
+			firstName: string;
+			lastName: string;
+		}> = {};
 
 		if (request.firstName !== undefined) {
-			if (!UserValidator.validateName(request.firstName)) {
+			if (!validateName(request.firstName)) {
 				return createFailure("First name must be between 2 and 100 characters");
 			}
 			updates.firstName = request.firstName;
 		}
 
 		if (request.lastName !== undefined) {
-			if (!UserValidator.validateName(request.lastName)) {
+			if (!validateName(request.lastName)) {
 				return createFailure("Last name must be between 2 and 100 characters");
 			}
 			updates.lastName = request.lastName;
@@ -53,7 +56,7 @@ export class UpdateUserProfileUseCase {
 			};
 
 			return createSuccess(response);
-		} catch (error) {
+		} catch (_error) {
 			return createFailure("Failed to update user profile");
 		}
 	}
