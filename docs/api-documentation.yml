@@ -81,57 +81,6 @@ paths:
                     type: string
                     example: "Database connection failed"
 
-  /health/jwt:
-    get:
-      summary: Health Check JWT
-      description: Verifica el estado de salud del sistema de autenticación JWT
-      tags:
-        - Health
-      security: []
-      responses:
-        '200':
-          description: Sistema JWT saludable
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  jwt:
-                    type: object
-                    properties:
-                      status:
-                        type: string
-                        example: "healthy"
-                      secretProvider:
-                        type: string
-                        example: "AWSSecretsProvider"
-                  service:
-                    type: string
-                    example: "healthy"
-                  timestamp:
-                    type: string
-                    format: date-time
-        '503':
-          description: Sistema JWT no disponible
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  jwt:
-                    type: object
-                    properties:
-                      status:
-                        type: string
-                        example: "unhealthy"
-                      error:
-                        type: string
-                  service:
-                    type: string
-                    example: "failed"
-                  timestamp:
-                    type: string
-                    format: date-time
 
   /api/banks:
     get:

@@ -17,17 +17,6 @@ app.get("/health", (c) => {
 	});
 });
 
-app.get("/health/jwt", (c) => {
-	return c.json({
-		jwt: {
-			status: "healthy",
-			secretProvider: "AWSSecretsProvider",
-		},
-		service: "healthy",
-		timestamp: new Date().toISOString(),
-	});
-});
-
 // Register banks routes
 registerBankRoutes(app);
 
@@ -41,7 +30,6 @@ logger.info("Bank Service API starting", {
 	environment: process.env.NODE_ENV || "development",
 	endpoints: [
 		`http://localhost:${port}/health`,
-		`http://localhost:${port}/health/jwt`,
 		`http://localhost:${port}/api/banks`,
 		`http://localhost:${port}/api/bank-groups`,
 	],

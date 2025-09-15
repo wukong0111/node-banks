@@ -36,24 +36,6 @@ curl -X GET http://localhost:3000/health
 }
 ```
 
-### GET /health/jwt
-
-**Request:**
-```bash
-curl -X GET http://localhost:3000/health/jwt
-```
-
-**Response 200 - JWT Healthy:**
-```json
-{
-  "jwt": {
-    "status": "healthy",
-    "secretProvider": "AWSSecretsProvider"
-  },
-  "service": "healthy",
-  "timestamp": "2024-01-15T10:30:00.000Z"
-}
-```
 
 ## Bancos
 

@@ -411,9 +411,6 @@ logger.warn('Invalid token provided', {
 ```bash
 # Health check básico (incluye DB)
 curl http://localhost:3000/health
-
-# Health check JWT (incluye Secrets Manager)
-curl http://localhost:3000/health/jwt
 ```
 
 ## Mejores Prácticas
