@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Banking Dashboard</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <script src="/static/js/main.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+    <div x-data="dashboard()">
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <div class="logo">Banking Dashboard</div>
+                    <nav>
+                        <ul class="nav-links">
+                            <li><a href="/dashboard">Dashboard</a></li>
+                            <li><a href="#" @click="logout()">Logout</a></li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard">
+            <div class="container">
+                <div class="dashboard-header">
+                    <h1 class="dashboard-title">Welcome back, <span x-text="userFullName"></span>!</h1>
+                    <p class="dashboard-subtitle">Here's your banking overview</p>
+                </div>
+
+                <div x-show="isLoading" style="text-align: center; padding: 2rem;">
+                    <div class="loading" style="width: 40px; height: 40px; margin: 0 auto;"></div>
+                    <p style="margin-top: 1rem;">Loading dashboard...</p>
+                </div>
+
+                <div x-show="error" class="error-message" style="text-align: center; padding: 2rem;" x-text="error"></div>
+
+                <div x-show="!isLoading && !error">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-title">Total Banks</div>
+                            <div class="stat-value" x-text="stats.totalBanks">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-title">Bank Groups</div>
+                            <div class="stat-value" x-text="stats.totalBankGroups">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-title">Active Configs</div>
+                            <div class="stat-value" x-text="stats.activeConfigs">0</div>
+                        </div>
+                    </div>
+
+                    <div style="background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); padding: 1.5rem;">
+                        <h2 style="margin-bottom: 1rem;">Quick Actions</h2>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <a href="#" class="btn btn-primary">Add Bank</a>
+                            <a href="#" class="btn btn-secondary">Add Bank Group</a>
+                            <a href="#" class="btn btn-secondary">View Reports</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    
+</body>
+</html>

@@ -7,7 +7,7 @@ import type {
 	Environment,
 	BankEnvironmentConfig,
 } from "../domain/Bank.js";
-import { DatabaseConnection } from "./database/DatabaseConnection.js";
+import { DatabaseConnection } from "../../../shared/infrastructure/database/DatabaseConnection.js";
 import { type Result, createSuccess, createFailure } from "../domain/Result.js";
 
 interface BankRow {

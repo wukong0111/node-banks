@@ -121,8 +121,10 @@ describe("RegisterUserUseCase", () => {
 			expect(createdUser?.passwordHash).toContain("."); // Hashed password contains salt
 
 			// Verify the password can be verified
-			const isValid = await compare(plainPassword, createdUser!.passwordHash);
-			expect(isValid).toBe(true);
+			if (createdUser?.passwordHash) {
+				const isValid = await compare(plainPassword, createdUser.passwordHash);
+				expect(isValid).toBe(true);
+			}
 		}
 	});
 

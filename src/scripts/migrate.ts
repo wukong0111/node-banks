@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { MigrationRunner } from "../contexts/banks/infrastructure/database/MigrationRunner.js";
+import { MigrationRunner } from "../shared/infrastructure/database/MigrationRunner.js";
 
 const COMMANDS = {
 	up: "Run pending migrations",
@@ -44,27 +44,52 @@ async function main(): Promise<void> {
 				break;
 		}
 	} catch (error) {
-		console.error("❌ Migration failed:", error instanceof Error ? error.message : error);
+		console.error(
+			"❌ Migration failed:",
+			error instanceof Error ? error.message : error,
+		);
 		process.exit(1);
+	} finally {
+		// Ensure database connections are closed
+		try {
+			await migrationRunner.close();
+		} catch (closeError) {
+			console.error(
+				"⚠️  Warning: Error closing database connections:",
+				closeError,
+			);
+		}
 	}
 }
 
 function printUsage(): void {
-	console.log("\\n🎮 Database Migration CLI\\n");
-	console.log("Usage: npm run db:migrate <command> [options]\\n");
-	
+	console.log("\n🎮 Database Migration CLI\n");
+	console.log("Usage: npm run db:migrate <command> [options]\n");
+
 	console.log("Commands:");
 	for (const [cmd, description] of Object.entries(COMMANDS)) {
 		console.log(`  ${cmd.padEnd(8)} ${description}`);
 	}
-	
-	console.log("\\nExamples:");
-	console.log("  npm run db:migrate up                    # Run all pending migrations");
-	console.log("  npm run db:migrate up 002_create_banks   # Run migrations up to specific version");
-	console.log("  npm run db:migrate down                  # Rollback last migration");
-	console.log("  npm run db:migrate down 2                # Rollback last 2 migrations");
-	console.log("  npm run db:migrate status                # Show migration status");
-	console.log("  npm run db:migrate reset                 # Rollback all migrations");
+
+	console.log("\nExamples:");
+	console.log(
+		"  npm run db:migrate up                    # Run all pending migrations",
+	);
+	console.log(
+		"  npm run db:migrate up 002_create_banks   # Run migrations up to specific version",
+	);
+	console.log(
+		"  npm run db:migrate down                  # Rollback last migration",
+	);
+	console.log(
+		"  npm run db:migrate down 2                # Rollback last 2 migrations",
+	);
+	console.log(
+		"  npm run db:migrate status                # Show migration status",
+	);
+	console.log(
+		"  npm run db:migrate reset                 # Rollback all migrations",
+	);
 }
 
 // Handle unhandled promise rejections

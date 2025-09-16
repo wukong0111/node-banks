@@ -1,6 +1,6 @@
 import type { BankGroupRepository } from "../domain/BankGroupRepository.js";
 import type { BankGroup } from "../domain/BankGroup.js";
-import { DatabaseConnection } from "./database/DatabaseConnection.js";
+import { DatabaseConnection } from "../../../shared/infrastructure/database/DatabaseConnection.js";
 
 interface BankGroupRow {
 	group_id: string;

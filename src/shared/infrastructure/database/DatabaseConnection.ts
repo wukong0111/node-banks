@@ -1,11 +1,18 @@
-import { Pool, type PoolClient, type QueryResult, type QueryResultRow } from "pg";
+import {
+	Pool,
+	type PoolClient,
+	type QueryResult,
+	type QueryResultRow,
+} from "pg";
 import { databaseConfig } from "./config.js";
-import { createLogger } from "../../../../shared/infrastructure/logging/LoggerFactory.js";
+import { createLogger } from "../logging/LoggerFactory.js";
 
 export class DatabaseConnection {
 	private static instance: DatabaseConnection;
 	private pool: Pool;
-	private logger = createLogger().withContext({ service: "DatabaseConnection" });
+	private logger = createLogger().withContext({
+		service: "DatabaseConnection",
+	});
 
 	private constructor() {
 		this.pool = new Pool(databaseConfig);
@@ -32,11 +39,11 @@ export class DatabaseConnection {
 		try {
 			const result = await this.pool.query<T>(text, params);
 			const duration = Date.now() - start;
-			this.logger.debug("Query executed successfully", { 
-				text, 
-				duration: `${duration}ms`, 
+			this.logger.debug("Query executed successfully", {
+				text,
+				duration: `${duration}ms`,
 				rows: result.rowCount,
-				params: params?.length || 0
+				params: params?.length || 0,
 			});
 			return result;
 		} catch (error) {
@@ -45,7 +52,7 @@ export class DatabaseConnection {
 				text,
 				duration: `${duration}ms`,
 				params: params?.length || 0,
-				error: error instanceof Error ? error.message : String(error)
+				error: error instanceof Error ? error.message : String(error),
 			});
 			throw error;
 		}
@@ -83,7 +90,7 @@ export class DatabaseConnection {
 			return true;
 		} catch (error) {
 			this.logger.error("Database ping failed", {
-				error: error instanceof Error ? error.message : String(error)
+				error: error instanceof Error ? error.message : String(error),
 			});
 			return false;
 		}

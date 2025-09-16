@@ -1,7 +1,8 @@
 import { readFile, readdir } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { DatabaseConnection } from "./DatabaseConnection.js";
+import { DatabaseConnection } from "../../../../shared/infrastructure/database/DatabaseConnection.js";
+import type { PoolClient } from "pg";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -17,9 +18,7 @@ export class SeederRunner {
 
 	public async getAvailableSeeders(): Promise<string[]> {
 		const files = await readdir(this.seedersPath);
-		const seeders = files
-			.filter((file) => file.endsWith(".sql"))
-			.sort(); // This will sort them numerically: 001_, 002_, 003_
+		const seeders = files.filter((file) => file.endsWith(".sql")).sort(); // This will sort them numerically: 001_, 002_, 003_
 		return seeders;
 	}
 
@@ -46,7 +45,9 @@ export class SeederRunner {
 
 	public async runSpecific(seederName: string): Promise<void> {
 		const seeders = await this.getAvailableSeeders();
-		const seeder = seeders.find((s) => s === seederName || s.includes(seederName));
+		const seeder = seeders.find(
+			(s) => s === seederName || s.includes(seederName),
+		);
 
 		if (!seeder) {
 			throw new Error(`Seeder "${seederName}" not found`);
@@ -61,9 +62,9 @@ export class SeederRunner {
 		const seederPath = join(this.seedersPath, seederFile);
 		const sql = await readFile(seederPath, "utf-8");
 
-		await this.db.transaction(async (client) => {
+		await this.db.transaction(async (client: PoolClient) => {
 			console.log(`🌱 Running seeder: ${seederFile}`);
-			
+
 			// Split SQL by semicolons and execute each statement
 			const statements = sql
 				.split(";")
@@ -75,14 +76,14 @@ export class SeederRunner {
 					await client.query(statement);
 				}
 			}
-			
+
 			console.log(`✅ Seeder ${seederFile} completed`);
 		});
 	}
 
 	private async truncateTables(): Promise<void> {
 		console.log("🧹 Truncating tables before seeding...");
-		
+
 		// Get all user tables (excluding system tables and schema_migrations)
 		const result = await this.db.query<{ table_name: string }>(`
 			SELECT table_name 
@@ -93,23 +94,27 @@ export class SeederRunner {
 			ORDER BY table_name
 		`);
 
-		const tableNames = result.rows.map((row) => row.table_name);
+		const tableNames = result.rows.map(
+			(row: { table_name: string }) => row.table_name,
+		);
 
 		if (tableNames.length === 0) {
 			console.log("No tables to truncate");
 			return;
 		}
 
-		await this.db.transaction(async (client) => {
+		await this.db.transaction(async (client: PoolClient) => {
 			// Disable foreign key checks temporarily
 			await client.query("SET session_replication_role = replica");
-			
+
 			// Truncate all tables
 			for (const tableName of tableNames) {
-				await client.query(`TRUNCATE TABLE ${tableName} RESTART IDENTITY CASCADE`);
+				await client.query(
+					`TRUNCATE TABLE ${tableName} RESTART IDENTITY CASCADE`,
+				);
 				console.log(`   Truncated: ${tableName}`);
 			}
-			
+
 			// Re-enable foreign key checks
 			await client.query("SET session_replication_role = DEFAULT");
 		});

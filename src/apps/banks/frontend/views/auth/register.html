@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Banking Dashboard</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <script src="/static/js/main.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">Banking Dashboard</div>
+                <nav>
+                    <ul class="nav-links">
+                        <li><a href="/login">Login</a></li>
+                        <li><a href="/register">Register</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="auth-container">
+        <div class="auth-card" x-data="registrationForm()">
+            <h1 class="auth-title">Create Account</h1>
+            
+            <form @submit.prevent="submit()">
+                <div class="form-group">
+                    <label class="form-label" for="firstName">First Name</label>
+                    <input
+                        type="text"
+                        id="firstName"
+                        class="form-input"
+                        :class="{ error: errors.firstName }"
+                        x-model="form.firstName"
+                        @blur="validateField('firstName')"
+                        required
+                    />
+                    <div class="error-message" x-text="errors.firstName" x-show="errors.firstName"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="lastName">Last Name</label>
+                    <input
+                        type="text"
+                        id="lastName"
+                        class="form-input"
+                        :class="{ error: errors.lastName }"
+                        x-model="form.lastName"
+                        @blur="validateField('lastName')"
+                        required
+                    />
+                    <div class="error-message" x-text="errors.lastName" x-show="errors.lastName"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="email">Email</label>
+                    <input
+                        type="email"
+                        id="email"
+                        class="form-input"
+                        :class="{ error: errors.email }"
+                        x-model="form.email"
+                        @blur="validateField('email')"
+                        required
+                    />
+                    <div class="error-message" x-text="errors.email" x-show="errors.email"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        class="form-input"
+                        :class="{ error: errors.password }"
+                        x-model="form.password"
+                        @blur="validateField('password')"
+                        required
+                    />
+                    <div class="error-message" x-text="errors.password" x-show="errors.password"></div>
+                </div>
+
+                <div class="success-message" x-text="successMessage" x-show="successMessage"></div>
+                <div class="error-message" x-text="errors.general" x-show="errors.general"></div>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary btn-block"
+                    :disabled="isLoading || hasErrors"
+                >
+                    <span x-show="!isLoading">Register</span>
+                    <span x-show="isLoading" class="loading"></span>
+                </button>
+            </form>
+
+            <div style="margin-top: 1.5rem; text-align: center;">
+                <p>Already have an account? <a href="/login" class="btn btn-secondary">Login</a></p>
+            </div>
+        </div>
+    </main>
+
+    
+</body>
+</html>

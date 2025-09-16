@@ -4,7 +4,7 @@ import type {
 	CreateUserRequest,
 	UpdateUserRequest,
 } from "../domain/User.js";
-import { DatabaseConnection } from "../../banks/infrastructure/database/DatabaseConnection.js";
+import { DatabaseConnection } from "../../../shared/infrastructure/database/DatabaseConnection.js";
 
 interface UserRow {
 	user_id: string;
