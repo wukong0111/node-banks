@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title x-text="isEditing ? 'Editar Banco' : 'Crear Banco'">Banking Dashboard</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <script src="/static/js/main.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+    <div x-data="bankForm()">
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <div class="logo">Banking Dashboard</div>
+                    <nav>
+                        <ul class="nav-links">
+                            <li><a href="/dashboard">Dashboard</a></li>
+                            <li><a href="/banks">Bancos</a></li>
+                            <li><a href="/bank-groups">Grupos</a></li>
+                            <li><a href="#" @click="logout()">Logout</a></li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard">
+            <div class="container">
+                <div class="dashboard-header">
+                    <h1 class="dashboard-title" x-text="isEditing ? 'Editar Banco' : 'Crear Banco'"></h1>
+                    <p class="dashboard-subtitle" x-text="isEditing ? 'Modifica la información del banco' : 'Agrega un nuevo banco al sistema'"></p>
+                </div>
+
+                <!-- Success Message -->
+                <div x-show="successMessage" class="success-alert" x-text="successMessage"></div>
+
+                <!-- Loading Overlay -->
+                <div x-show="isLoading" class="loading-overlay">
+                    <div style="text-align: center;">
+                        <div class="loading" style="width: 40px; height: 40px; margin: 0 auto;"></div>
+                        <p style="margin-top: 1rem;">Procesando...</p>
+                    </div>
+                </div>
+
+                <!-- Bank Form -->
+                <form @submit.prevent="submit()" style="position: relative;">
+                    <!-- Basic Information Section -->
+                    <div class="form-section">
+                        <h2 class="form-section-title">Información Básica</h2>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">ID del Banco *</label>
+                                <input 
+                                    type="text" 
+                                    class="form-input" 
+                                    :class="{ 'error': errors.bank_id }"
+                                    x-model="form.bank_id"
+                                    @input="validateField('bank_id')"
+                                    :disabled="isEditing"
+                                    required
+                                >
+                                <div x-show="errors.bank_id" class="error-message" x-text="errors.bank_id"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Nombre del Banco *</label>
+                                <input 
+                                    type="text" 
+                                    class="form-input" 
+                                    :class="{ 'error': errors.name }"
+                                    x-model="form.name"
+                                    @input="validateField('name')"
+                                    required
+                                >
+                                <div x-show="errors.name" class="error-message" x-text="errors.name"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">País *</label>
+                                <input 
+                                    type="text" 
+                                    class="form-input" 
+                                    :class="{ 'error': errors.country }"
+                                    x-model="form.country"
+                                    @input="validateField('country')"
+                                    required
+                                >
+                                <div x-show="errors.country" class="error-message" x-text="errors.country"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">ASPSP *</label>
+                                <input 
+                                    type="text" 
+                                    class="form-input" 
+                                    :class="{ 'error': errors.aspsp }"
+                                    x-model="form.aspsp"
+                                    @input="validateField('aspsp')"
+                                    required
+                                >
+                                <div x-show="errors.aspsp" class="error-message" x-text="errors.aspsp"></div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">API *</label>
+                                <input 
+                                    type="text" 
+                                    class="form-input" 
+                                    :class="{ 'error': errors.api }"
+                                    x-model="form.api"
+                                    @input="validateField('api')"
+                                    required
+                                >
+                                <div x-show="errors.api" class="error-message" x-text="errors.api"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Versión de API *</label>
+                                <input 
+                                    type="text" 
+                                    class="form-input" 
+                                    :class="{ 'error': errors.api_version }"
+                                    x-model="form.api_version"
+                                    @input="validateField('api_version')"
+                                    required
+                                >
+                                <div x-show="errors.api_version" class="error-message" x-text="errors.api_version"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Códigos Bancarios *</label>
+                                <input 
+                                    type="text" 
+                                    class="form-input" 
+                                    :class="{ 'error': errors.bank_codes }"
+                                    x-model="bankCodesString"
+                                    @input="updateBankCodes"
+                                    placeholder="Ej: 001,002,003"
+                                    required
+                                >
+                                <div x-show="errors.bank_codes" class="error-message" x-text="errors.bank_codes"></div>
+                                <small style="color: #718096;">Separar códigos por comas</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Requiere Elección de Autenticación *</label>
+                                <select 
+                                    class="form-input" 
+                                    :class="{ 'error': errors.auth_type_choice_required }"
+                                    x-model="form.auth_type_choice_required"
+                                    @change="validateField('auth_type_choice_required')"
+                                    required
+                                >
+                                    <option :value="true">Sí</option>
+                                    <option :value="false">No</option>
+                                </select>
+                                <div x-show="errors.auth_type_choice_required" class="error-message" x-text="errors.auth_type_choice_required"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Information Section -->
+                    <div class="form-section">
+                        <h2 class="form-section-title">Información Adicional</h2>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Código BIC</label>
+                                <input 
+                                    type="text" 
+                                    class="form-input" 
+                                    x-model="form.bic"
+                                    placeholder="Ej: DEUTDEFF"
+                                >
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Nombre Real</label>
+                                <input 
+                                    type="text" 
+                                    class="form-input" 
+                                    x-model="form.real_name"
+                                    placeholder="Nombre legal del banco"
+                                >
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Código de Producto</label>
+                                <input 
+                                    type="text" 
+                                    class="form-input" 
+                                    x-model="form.product_code"
+                                    placeholder="Código de producto interno"
+                                >
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">ID del Grupo Bancario</label>
+                                <input 
+                                    type="text" 
+                                    class="form-input" 
+                                    x-model="form.bank_group_id"
+                                    placeholder="ID del grupo asociado"
+                                >
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">URL del Logo</label>
+                                <input 
+                                    type="url" 
+                                    class="form-input" 
+                                    x-model="form.logo_url"
+                                    placeholder="https://ejemplo.com/logo.png"
+                                >
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">URL de Documentación</label>
+                                <input 
+                                    type="url" 
+                                    class="form-input" 
+                                    x-model="form.documentation"
+                                    placeholder="https://ejemplo.com/docs"
+                                >
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Environment Configuration Section -->
+                    <div class="form-section">
+                        <h2 class="form-section-title">Configuración de Entornos</h2>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Entornos</label>
+                                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <input 
+                                            type="checkbox" 
+                                            x-model="form.environments"
+                                            value="sandbox"
+                                        >
+                                        Sandbox
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <input 
+                                            type="checkbox" 
+                                            x-model="form.environments"
+                                            value="production"
+                                        >
+                                        Production
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-section">
+                        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                            <button 
+                                type="button" 
+                                class="btn btn-secondary" 
+                                @click="cancel()"
+                                :disabled="isLoading"
+                            >
+                                Cancelar
+                            </button>
+                            <button 
+                                type="submit" 
+                                class="btn btn-primary" 
+                                :disabled="isLoading || hasErrors"
+                            >
+                                <span x-show="!isLoading">Guardar</span>
+                                <span x-show="isLoading">Guardando...</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

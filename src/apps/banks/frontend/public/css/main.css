@@ -234,6 +234,133 @@ body {
 	}
 }
 
+/* Banks Table Styles */
+.banks-table {
+	width: 100%;
+	border-collapse: collapse;
+	background: white;
+	border-radius: 8px;
+	overflow: hidden;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.banks-table th,
+.banks-table td {
+	padding: 1rem;
+	text-align: left;
+	border-bottom: 1px solid #e2e8f0;
+}
+
+.banks-table th {
+	background: #f7fafc;
+	font-weight: 600;
+	color: #4a5568;
+}
+
+.banks-table tr:hover {
+	background: #f7fafc;
+}
+
+/* Complex Form Styles */
+.form-section {
+	background: white;
+	border-radius: 8px;
+	padding: 1.5rem;
+	margin-bottom: 1.5rem;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.form-section-title {
+	font-size: 1.125rem;
+	font-weight: 600;
+	color: #2d3748;
+	margin-bottom: 1rem;
+	padding-bottom: 0.5rem;
+	border-bottom: 2px solid #e2e8f0;
+}
+
+.form-row {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+	gap: 1rem;
+}
+
+/* Modal Dialog Styles */
+.modal-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+}
+
+.modal-dialog {
+	background: white;
+	border-radius: 8px;
+	padding: 2rem;
+	max-width: 500px;
+	width: 90%;
+	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+	margin-bottom: 1rem;
+}
+
+.modal-title {
+	font-size: 1.25rem;
+	font-weight: 600;
+	color: #2d3748;
+}
+
+.modal-body {
+	margin-bottom: 1.5rem;
+	color: #4a5568;
+}
+
+.modal-footer {
+	display: flex;
+	justify-content: flex-end;
+	gap: 1rem;
+}
+
+/* Loading and Error States */
+.loading-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(255, 255, 255, 0.8);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 100;
+}
+
+.error-alert {
+	background: #fed7d7;
+	border: 1px solid #feb2b2;
+	color: #c53030;
+	padding: 1rem;
+	border-radius: 4px;
+	margin-bottom: 1rem;
+}
+
+.success-alert {
+	background: #c6f6d5;
+	border: 1px solid #9ae6b4;
+	color: #276749;
+	padding: 1rem;
+	border-radius: 4px;
+	margin-bottom: 1rem;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
 	.header-content {
@@ -247,5 +374,23 @@ body {
 
 	.stats-grid {
 		grid-template-columns: 1fr;
+	}
+
+	.banks-table {
+		font-size: 0.875rem;
+	}
+
+	.banks-table th,
+	.banks-table td {
+		padding: 0.5rem;
+	}
+
+	.form-row {
+		grid-template-columns: 1fr;
+	}
+
+	.modal-dialog {
+		margin: 1rem;
+		width: calc(100% - 2rem);
 	}
 }

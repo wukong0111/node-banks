@@ -52,4 +52,48 @@ frontendRoutes.get("/dashboard", (c) => {
 	return c.html(html);
 });
 
+// Banks management routes
+frontendRoutes.get("/banks", (c) => {
+	logger.info("Serving banks list page");
+	const html = serveHtmlFile(join(__dirname, "views/banks/banks.html"));
+	return c.html(html);
+});
+
+frontendRoutes.get("/banks/new", (c) => {
+	logger.info("Serving new bank form page");
+	const html = serveHtmlFile(join(__dirname, "views/banks/bank-form.html"));
+	return c.html(html);
+});
+
+frontendRoutes.get("/banks/:id/edit", (c) => {
+	logger.info("Serving edit bank form page", { bankId: c.req.param("id") });
+	const html = serveHtmlFile(join(__dirname, "views/banks/bank-form.html"));
+	return c.html(html);
+});
+
+frontendRoutes.get("/banks/:id/details", (c) => {
+	logger.info("Serving bank details page", { bankId: c.req.param("id") });
+	const html = serveHtmlFile(join(__dirname, "views/banks/bank-details.html"));
+	return c.html(html);
+});
+
+// Bank groups management routes
+frontendRoutes.get("/bank-groups", (c) => {
+	logger.info("Serving bank groups list page");
+	const html = serveHtmlFile(
+		join(__dirname, "views/bank-groups/bank-groups.html"),
+	);
+	return c.html(html);
+});
+
+frontendRoutes.get("/bank-groups/:id/details", (c) => {
+	logger.info("Serving bank group details page", {
+		groupId: c.req.param("id"),
+	});
+	const html = serveHtmlFile(
+		join(__dirname, "views/bank-groups/bank-group-details.html"),
+	);
+	return c.html(html);
+});
+
 export default frontendRoutes;

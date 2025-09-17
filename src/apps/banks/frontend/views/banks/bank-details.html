@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalles del Banco - Banking Dashboard</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <script src="/static/js/main.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+    <div x-data="bankDetails()">
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <div class="logo">Banking Dashboard</div>
+                    <nav>
+                        <ul class="nav-links">
+                            <li><a href="/dashboard">Dashboard</a></li>
+                            <li><a href="/banks">Bancos</a></li>
+                            <li><a href="/bank-groups">Grupos</a></li>
+                            <li><a href="#" @click="logout()">Logout</a></li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard">
+            <div class="container">
+                <div class="dashboard-header">
+                    <h1 class="dashboard-title">Detalles del Banco</h1>
+                    <p class="dashboard-subtitle">Información completa del banco</p>
+                </div>
+
+                <!-- Loading State -->
+                <div x-show="isLoading" style="text-align: center; padding: 2rem;">
+                    <div class="loading" style="width: 40px; height: 40px; margin: 0 auto;"></div>
+                    <p style="margin-top: 1rem;">Cargando detalles del banco...</p>
+                </div>
+
+                <!-- Error State -->
+                <div x-show="error && !isLoading" class="error-alert" x-text="error"></div>
+
+                <!-- Bank Details -->
+                <div x-show="!isLoading && !error && bank">
+                    <!-- Actions -->
+                    <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+                        <a :href="`/banks/${bankId}/edit`" class="btn btn-primary">Editar</a>
+                        <button 
+                            class="btn btn-secondary" 
+                            style="background: #fed7d7; color: #c53030;"
+                            @click="confirmDelete()"
+                        >
+                            Eliminar
+                        </button>
+                        <a href="/banks" class="btn btn-secondary">Volver</a>
+                    </div>
+
+                    <!-- Basic Information -->
+                    <div class="form-section">
+                        <h2 class="form-section-title">Información Básica</h2>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">ID del Banco</label>
+                                <div style="padding: 0.75rem; background: #f7fafc; border-radius: 4px; font-weight: 500;" x-text="bank.bank_id"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Nombre del Banco</label>
+                                <div style="padding: 0.75rem; background: #f7fafc; border-radius: 4px;" x-text="bank.name"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">País</label>
+                                <div style="padding: 0.75rem; background: #f7fafc; border-radius: 4px;" x-text="bank.country"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">ASPSP</label>
+                                <div style="padding: 0.75rem; background: #f7fafc; border-radius: 4px;" x-text="bank.aspsp"></div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">API</label>
+                                <div style="padding: 0.75rem; background: #f7fafc; border-radius: 4px;" x-text="bank.api"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Versión de API</label>
+                                <div style="padding: 0.75rem; background: #f7fafc; border-radius: 4px;" x-text="bank.api_version"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Códigos Bancarios</label>
+                                <div style="padding: 0.75rem; background: #f7fafc; border-radius: 4px;" x-text="bank.bank_codes?.join(', ')"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Requiere Elección de Autenticación</label>
+                                <div style="padding: 0.75rem; background: #f7fafc; border-radius: 4px;" x-text="bank.auth_type_choice_required ? 'Sí' : 'No'"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Information -->
+                    <div class="form-section" x-show="hasAdditionalInfo">
+                        <h2 class="form-section-title">Información Adicional</h2>
+                        <div class="form-row">
+                            <div class="form-group" x-show="bank.bic">
+                                <label class="form-label">Código BIC</label>
+                                <div style="padding: 0.75rem; background: #f7fafc; border-radius: 4px;" x-text="bank.bic"></div>
+                            </div>
+                            <div class="form-group" x-show="bank.real_name">
+                                <label class="form-label">Nombre Real</label>
+                                <div style="padding: 0.75rem; background: #f7fafc; border-radius: 4px;" x-text="bank.real_name"></div>
+                            </div>
+                            <div class="form-group" x-show="bank.product_code">
+                                <label class="form-label">Código de Producto</label>
+                                <div style="padding: 0.75rem; background: #f7fafc; border-radius: 4px;" x-text="bank.product_code"></div>
+                            </div>
+                            <div class="form-group" x-show="bank.bank_group_id">
+                                <label class="form-label">ID del Grupo Bancario</label>
+                                <div style="padding: 0.75rem; background: #f7fafc; border-radius: 4px;" x-text="bank.bank_group_id"></div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group" x-show="bank.logo_url">
+                                <label class="form-label">Logo</label>
+                                <div style="padding: 0.75rem; background: #f7fafc; border-radius: 4px;">
+                                    <img :src="bank.logo_url" :alt="bank.name" style="max-width: 100px; max-height: 50px; object-fit: contain;">
+                                </div>
+                            </div>
+                            <div class="form-group" x-show="bank.documentation">
+                                <label class="form-label">Documentación</label>
+                                <div style="padding: 0.75rem; background: #f7fafc; border-radius: 4px;">
+                                    <a :href="bank.documentation" target="_blank" rel="noopener noreferrer" style="color: #3182ce;">Ver documentación</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Environment Configuration -->
+                    <div class="form-section" x-show="bank.environments && bank.environments.length > 0">
+                        <h2 class="form-section-title">Entornos Configurados</h2>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <template x-for="env in bank.environments" :key="env">
+                                <div style="padding: 0.5rem 1rem; background: #e6fffa; border: 1px solid #81e6d9; border-radius: 4px; color: #234e52; font-weight: 500;" x-text="env"></div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Keywords and Attributes -->
+                    <div class="form-section" x-show="bank.keywords || bank.attribute">
+                        <h2 class="form-section-title">Metadatos</h2>
+                        <div class="form-row">
+                            <div class="form-group" x-show="bank.keywords">
+                                <label class="form-label">Palabras Clave</label>
+                                <div style="padding: 0.75rem; background: #f7fafc; border-radius: 4px; font-family: monospace; font-size: 0.875rem;" x-text="JSON.stringify(bank.keywords, null, 2)"></div>
+                            </div>
+                            <div class="form-group" x-show="bank.attribute">
+                                <label class="form-label">Atributos</label>
+                                <div style="padding: 0.75rem; background: #f7fafc; border-radius: 4px; font-family: monospace; font-size: 0.875rem;" x-text="JSON.stringify(bank.attribute, null, 2)"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Delete Confirmation Modal -->
+        <div x-show="confirmDialog.isOpen" class="modal-overlay" @click.self="confirmDialog.close()">
+            <div class="modal-dialog">
+                <div class="modal-header">
+                    <h3 class="modal-title">Confirmar Eliminación</h3>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas eliminar el banco <strong x-text="bank?.name"></strong>?</p>
+                    <p style="color: #e53e3e; font-size: 0.875rem; margin-top: 0.5rem;">Esta acción no se puede deshacer.</p>
+                </div>
+                <div class="modal-footer">
+                    <button 
+                        class="btn btn-secondary" 
+                        @click="confirmDialog.close()"
+                        :disabled="confirmDialog.isLoading"
+                    >
+                        Cancelar
+                    </button>
+                    <button 
+                        class="btn btn-primary" 
+                        style="background: #e53e3e;"
+                        @click="confirmDeleteAction()"
+                        :disabled="confirmDialog.isLoading"
+                    >
+                        <span x-show="!confirmDialog.isLoading">Eliminar</span>
+                        <span x-show="confirmDialog.isLoading">Eliminando...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -13,7 +13,7 @@ import { type Result, createSuccess, createFailure } from "../domain/Result.js";
 interface BankRow {
 	bank_id: string;
 	name: string;
-	bank_codes: string;
+	bank_codes: string[];
 	api: string;
 	api_version: string;
 	aspsp: string;
@@ -512,7 +512,7 @@ export class PostgresBankRepository implements BankRepository {
 		return {
 			bank_id: row.bank_id,
 			name: row.name,
-			bank_codes: JSON.parse(row.bank_codes || "[]") as string[],
+			bank_codes: row.bank_codes || [],
 			api: row.api,
 			api_version: row.api_version,
 			aspsp: row.aspsp,
