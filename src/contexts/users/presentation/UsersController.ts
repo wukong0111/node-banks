@@ -3,6 +3,7 @@ import type { RegisterUserRequest } from "../application/dto/RegisterUserRequest
 import type { LoginUserRequest } from "../application/dto/LoginUserRequest.js";
 import type { UpdateUserProfileRequest } from "../application/dto/UpdateUserProfileRequest.js";
 import { deps } from "./dependencies.js";
+import { userJWTMiddleware } from "../infrastructure/auth/UserJWTMiddleware.js";
 
 export default function registerUserRoutes(app: Hono) {
 	// Register user
@@ -76,11 +77,11 @@ export default function registerUserRoutes(app: Hono) {
 	});
 
 	// Get user profile
-	app.get("/app/users/profile", async (c) => {
+	app.get("/app/users/profile", userJWTMiddleware(), async (c) => {
 		try {
-			// TODO: Add JWT middleware to extract user ID from token
-			const userId =
-				c.req.header("Authorization")?.replace("Bearer ", "") || "temp-user-id";
+			// Extract user ID from JWT token via auth context
+			const userAuthContext = c.get("userAuthContext");
+			const userId = userAuthContext.userId;
 
 			const result = await deps.getUserProfileUseCase.execute(userId);
 
@@ -112,11 +113,12 @@ export default function registerUserRoutes(app: Hono) {
 	});
 
 	// Update user profile
-	app.put("/app/users/profile", async (c) => {
+	app.put("/app/users/profile", userJWTMiddleware(), async (c) => {
 		try {
-			// TODO: Add JWT middleware to extract user ID from token
-			const userId =
-				c.req.header("Authorization")?.replace("Bearer ", "") || "temp-user-id";
+			// Extract user ID from JWT token via auth context
+			const userAuthContext = c.get("userAuthContext");
+			const userId = userAuthContext.userId;
+
 			const requestBody = await c.req.json();
 			const request: UpdateUserProfileRequest = requestBody;
 
@@ -153,11 +155,11 @@ export default function registerUserRoutes(app: Hono) {
 	});
 
 	// Delete user account
-	app.delete("/app/users/profile", async (c) => {
+	app.delete("/app/users/profile", userJWTMiddleware(), async (c) => {
 		try {
-			// TODO: Add JWT middleware to extract user ID from token
-			const userId =
-				c.req.header("Authorization")?.replace("Bearer ", "") || "temp-user-id";
+			// Extract user ID from JWT token via auth context
+			const userAuthContext = c.get("userAuthContext");
+			const userId = userAuthContext.userId;
 
 			const user = await deps.getUserProfileUseCase.execute(userId);
 			if (!user.success) {

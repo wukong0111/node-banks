@@ -125,7 +125,7 @@ document.addEventListener("alpine:init", () => {
 					}, 1000);
 				} else {
 					this.errors = data.errors || {
-						general: data.message || "Login failed",
+						general: data.error || "Login failed",
 					};
 				}
 			} catch (_error) {
