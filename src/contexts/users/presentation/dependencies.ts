@@ -3,32 +3,11 @@ import { RegisterUserUseCase } from "../application/RegisterUserUseCase.js";
 import { LoginUserUseCase } from "../application/LoginUserUseCase.js";
 import { GetUserProfileUseCase } from "../application/GetUserProfileUseCase.js";
 import { UpdateUserProfileUseCase } from "../application/UpdateUserProfileUseCase.js";
-import { SignJWT, type JWTPayload } from "jose";
-import { getJWTConfig } from "../../../shared/infrastructure/config/JWTConfig.js";
-
-// Create a simple JWT service wrapper for user authentication
-class UserJWTService {
-	private readonly config = getJWTConfig();
-	private readonly secretKey = new TextEncoder().encode(this.config.secret);
-
-	async sign(payload: JWTPayload): Promise<string> {
-		const jwt = new SignJWT(payload)
-			.setProtectedHeader({ alg: this.config.algorithm })
-			.setIssuedAt()
-			.setIssuer(this.config.issuer)
-			.setExpirationTime("24h");
-
-		if (this.config.audience) {
-			jwt.setAudience(this.config.audience);
-		}
-
-		return await jwt.sign(this.secretKey);
-	}
-}
+import { JWTService } from "../../../shared/infrastructure/auth/JWTService.js";
 import { createLogger } from "../../../shared/infrastructure/logging/LoggerFactory.js";
 
 const userRepository = new PostgresUserRepository();
-const jwtService = new UserJWTService();
+const jwtService = JWTService.getInstance();
 const logger = createLogger().withContext({ service: "UsersService" });
 
 export const registerUserUseCase = new RegisterUserUseCase(userRepository);

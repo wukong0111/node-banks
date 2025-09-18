@@ -26,13 +26,6 @@
 ## Git Workflow
 - **Commits**: NEVER commit changes unless explicitly requested by the user
 
-## Implementation Plan
-For the complete implementation plan of the banking dashboard with frontend, see [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md).
-
-### Current Status
-- **Fase 1 (Backend Users Context)**: ✅ COMPLETED
-- **Fase 2-6 (Frontend & Integration)**: ⏳ PENDING
-
 ### Quick Start
 1. Run database migrations: `npm run db:migrate`
 2. Start development server: `npm run dev`

@@ -39,15 +39,18 @@ export const userJWTMiddleware = () => {
 				algorithms: [config.algorithm],
 			});
 
-			// Validate required claims for user tokens
-			if (!payload.userId || !payload.email) {
+			// Validate required claims for user tokens (support both old and new format)
+			const userId = payload.userId || payload.sub;
+			const email = payload.email || ""; // Email not always available in new format
+
+			if (!userId) {
 				throw new Error("Invalid user JWT claims structure");
 			}
 
 			// Create user auth context
 			const userAuthContext = {
-				userId: payload.userId as string,
-				email: payload.email as string,
+				userId: userId as string,
+				email: email as string,
 			};
 
 			// Store auth context in Hono's context

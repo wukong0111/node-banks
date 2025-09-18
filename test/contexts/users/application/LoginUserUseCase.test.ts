@@ -7,15 +7,15 @@ import { hash } from "../../../../src/contexts/users/infrastructure/auth/Passwor
 
 describe("LoginUserUseCase", () => {
 	let userRepository: MockUserRepository;
-	let mockJwtService: { sign: (payload: object) => Promise<string> };
+	let mockJwtService: any;
 	let useCase: LoginUserUseCase;
 
 	beforeEach(() => {
 		userRepository = new MockUserRepository();
 		mockJwtService = {
-			sign: async (payload: object) =>
+			generateToken: async (payload: object) =>
 				`mock-jwt-token-${JSON.stringify(payload)}`,
-		};
+		} as any;
 		useCase = new LoginUserUseCase(userRepository, mockJwtService);
 	});
 
@@ -195,10 +195,10 @@ describe("LoginUserUseCase", () => {
 
 		// Mock JWT service to throw an error
 		const errorJwtService = {
-			sign: async () => {
+			generateToken: async () => {
 				throw new Error("JWT service error");
 			},
-		};
+		} as any;
 
 		const errorUseCase = new LoginUserUseCase(userRepository, errorJwtService);
 

@@ -3,14 +3,13 @@ import type { LoginUserRequest } from "./dto/LoginUserRequest.js";
 import type { LoginUserResponse } from "./dto/LoginUserResponse.js";
 import { compare } from "../infrastructure/auth/PasswordHasher.js";
 import { createSuccess, createFailure, type Result } from "../domain/Result.js";
-import type { JWTPayload } from "jose";
+import type { JWTService } from "../../../shared/infrastructure/auth/JWTService.js";
+import { Permission } from "../../../shared/domain/auth/Permission.js";
 
 export class LoginUserUseCase {
 	constructor(
 		private readonly userRepository: UserRepository,
-		private readonly jwtService: {
-			sign: (payload: JWTPayload) => Promise<string>;
-		},
+		private readonly jwtService: JWTService,
 	) {}
 
 	async execute(request: LoginUserRequest): Promise<Result<LoginUserResponse>> {
@@ -29,9 +28,12 @@ export class LoginUserUseCase {
 		}
 
 		try {
-			const token = await this.jwtService.sign({
-				userId: user.userId,
-				email: user.email,
+			const token = await this.jwtService.generateToken({
+				iss: "bank-service",
+				sub: user.userId,
+				service_type: "user",
+				permissions: [Permission.BANKS_READ, Permission.BANKS_WRITE],
+				environment: process.env.NODE_ENV || "development",
 			});
 
 			const response: LoginUserResponse = {
