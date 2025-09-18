@@ -199,7 +199,7 @@ export class PostgresBankRepository implements BankRepository {
 				be.enabled_periodic_payment,
 				be.frequency_periodic_payment,
 				be.config_periodic_payment
-			FROM bank_environments be
+			FROM bank_environment_configs be
 			WHERE be.bank_id = $1
 		`;
 
@@ -275,7 +275,7 @@ export class PostgresBankRepository implements BankRepository {
 				updateData.environmentConfigs,
 			)) {
 				const envQuery = `
-					INSERT INTO bank_environments (
+					INSERT INTO bank_environment_configs (
 						bank_id, environment, enabled, blocked, risky, app_auth_setup_required,
 						blocked_text, risky_message, supports_instant_payments,
 						instant_payments_activated, instant_payments_limit,
@@ -385,7 +385,7 @@ export class PostgresBankRepository implements BankRepository {
 			// Insert environment configurations
 			for (const [env, config] of Object.entries(bankData.environmentConfigs)) {
 				const envQuery = `
-					INSERT INTO bank_environments (
+					INSERT INTO bank_environment_configs (
 						bank_id, environment, enabled, blocked, risky, app_auth_setup_required,
 						blocked_text, risky_message, supports_instant_payments,
 						instant_payments_activated, instant_payments_limit,
@@ -489,7 +489,7 @@ export class PostgresBankRepository implements BankRepository {
 
 			// Delete bank environment configurations first (foreign key constraint)
 			const deleteEnvsQuery =
-				"DELETE FROM bank_environments WHERE bank_id = $1";
+				"DELETE FROM bank_environment_configs WHERE bank_id = $1";
 			await client.query(deleteEnvsQuery, [bankId]);
 
 			// Delete the bank
