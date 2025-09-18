@@ -170,8 +170,10 @@ describe("LoginUserUseCase", () => {
 			const tokenPayload = JSON.parse(
 				result.data.token.replace("mock-jwt-token-", ""),
 			);
-			expect(tokenPayload.userId).toBe(existingUser.userId);
-			expect(tokenPayload.email).toBe(existingUser.email);
+			expect(tokenPayload.sub).toBe(existingUser.userId);
+			expect(tokenPayload.service_type).toBe("user");
+			expect(tokenPayload.permissions).toEqual(["banks:read", "banks:write"]);
+			expect(tokenPayload.environment).toBe("test");
 		}
 	});
 
