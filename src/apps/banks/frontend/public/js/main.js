@@ -204,7 +204,7 @@ document.addEventListener("alpine:init", () => {
 		async loadDashboardStats() {
 			try {
 				const token = localStorage.getItem("jwt_token");
-				const response = await fetch("/app/banks", {
+				const response = await fetch("/api/banks", {
 					headers: {
 						Authorization: `Bearer ${token}`,
 					},
@@ -224,7 +224,7 @@ document.addEventListener("alpine:init", () => {
 				}
 
 				// Load bank groups
-				const groupsResponse = await fetch("/app/bank-groups", {
+				const groupsResponse = await fetch("/api/bank-groups", {
 					headers: {
 						Authorization: `Bearer ${token}`,
 					},
